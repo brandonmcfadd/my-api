@@ -574,7 +574,7 @@ async def amtrak_trips(auth_token: str, type:str, date: str, train: str, origin 
                     json_file_loaded.pop(train_id, None)
                     return_text = {"Status":"Train Removed","TrainDetails":train_input}
                 else:
-                    return_text = {"Status": "Failed to Remove Train. Train does not exist.","TrainDetails":train_input}
+                    return_text = {"Status": "Failed to Remove Train. Train does not exist.","TrainID":train_id}
             with open(json_file, 'w', encoding="utf-8") as fp2:
                 json.dump(json_file_loaded, fp2, indent=4,
                           separators=(',', ': '))

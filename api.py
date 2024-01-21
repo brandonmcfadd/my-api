@@ -23,6 +23,7 @@ security = HTTPBasic()
 # Load .env variables
 load_dotenv()
 
+api_file_path = os.getenv('API_FILE_PATH')
 main_file_path = os.getenv('FILE_PATH')
 wmata_main_file_path = os.getenv('WMATA_FILE_PATH')
 main_file_path_7000 = os.getenv('FILE_PATH_7000')
@@ -65,7 +66,7 @@ def get_date(date_type):
 
 def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
     """Used to verify Creds"""
-    file = open(file=main_file_path + '.tokens',
+    file = open(file=api_file_path + '.tokens',
                 mode='r',
                 encoding='utf-8')
     tokens = json.load(file)
@@ -142,7 +143,7 @@ async def startup():
         "redis://localhost", encoding="utf-8", decode_responses=True)
     # Logging Information
     logger = logging.getLogger("uvicorn.access")
-    log_filename = main_file_path + '/logs/api-service.log'
+    log_filename = api_file_path + '/logs/api-service.log'
     logging.basicConfig(level=logging.INFO)
     handler = RotatingFileHandler(log_filename, maxBytes=10e6, backupCount=10)
     formatter = logging.Formatter(
@@ -514,7 +515,7 @@ async def add_user_to_api(type: str, username: str, auth_token: str, token: str 
     """Used to retrieve results"""
     try:
         if auth_token == deploy_secret:
-            json_file = main_file_path + ".tokens"
+            json_file = api_file_path + ".tokens"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
             if type == "add":

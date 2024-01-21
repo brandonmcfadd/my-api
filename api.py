@@ -571,18 +571,18 @@ async def amtrak_trips(auth_token: str, type:str, date: str, train: str, origin 
                 if train_id in json_file_loaded:
                     train_input = json_file_loaded[train_id]
                     json_file_loaded.pop(train_id, None)
+                    return_text = {"Status":"Train Removed","TrainDetails":train_input}
                 else:
-                    return {"Status": "Failed to Remove Train. Train does not exist.","TrainDetails":train_input}
-                return_text = {"Status":"Train Removed","TrainDetails":train_input}
+                    return_text = {"Status": "Failed to Remove Train. Train does not exist.","TrainDetails":train_input}
             with open(json_file, 'w', encoding="utf-8") as fp2:
                 json.dump(json_file_loaded, fp2, indent=4,
                           separators=(',', ': '))
             return return_text
         else:
-            endpoint = "https://brandonmcfadden.com/api/amtrak/post"
+            endpoint = "https://brandonmcfadden.com/api/amtrak/post/"
             return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
     except:  # pylint: disable=bare-except
-        endpoint = "https://brandonmcfadden.com/api/amtrak/post"
+        endpoint = "https://brandonmcfadden.com/api/amtrak/post/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
 
 @app.get("/api/amtrak/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
@@ -593,5 +593,5 @@ async def get_amtrak_trips(token: str = Depends(get_current_username)):
         results = open(json_file, 'r', encoding="utf-8")
         return Response(content=results.read(), media_type="application/json")
     except:  # pylint: disable=bare-except
-        endpoint = "https://brandonmcfadden.com/api/amtrak/get"
+        endpoint = "https://brandonmcfadden.com/api/amtrak/get/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))

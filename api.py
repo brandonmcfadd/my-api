@@ -28,6 +28,7 @@ main_file_path = os.getenv('FILE_PATH')
 wmata_main_file_path = os.getenv('WMATA_FILE_PATH')
 main_file_path_7000 = os.getenv('FILE_PATH_7000')
 main_file_path_amtrak = os.getenv('FILE_PATH_AMTRAK')
+main_file_path_transit_data = os.getenv('FILE_PATH_TRANSIT_DATA')
 main_file_path_json = main_file_path + "train_arrivals/json/"
 wmata_main_file_path_json = wmata_main_file_path + "train_arrivals/json/"
 main_file_path_csv = main_file_path + "train_arrivals/csv/"
@@ -599,4 +600,15 @@ async def get_amtrak_trips(token: str = Depends(get_current_username)):
         return Response(content=results.read(), media_type="application/json")
     except:  # pylint: disable=bare-except
         endpoint = "https://brandonmcfadden.com/api/amtrak/get/"
+        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+
+@app.get("/api/transit-data/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+async def get_transit_trips():
+    """Used to retrieve results"""
+    try:
+        json_file = main_file_path_transit_data + "transit-data.json"
+        results = open(json_file, 'r', encoding="utf-8")
+        return Response(content=results.read(), media_type="application/json")
+    except:  # pylint: disable=bare-except
+        endpoint = "https://brandonmcfadden.com/api/transit-data/get/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))

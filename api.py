@@ -301,41 +301,6 @@ async def return_special_station_json(token: str = Depends(get_current_username)
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
 
 
-@app.get("/api/7000-series-tracker/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def get_7000_series_information(token: str = Depends(get_current_username)):
-    """Used to retrieve results"""
-    try:
-        json_file = main_file_path_7000 + "7000-series.json"
-        results = open(json_file, 'r', encoding="utf-8")
-        return Response(content=results.read(), media_type="application/json")
-    except:  # pylint: disable=bare-except
-        endpoint = "https://brandonmcfadden.com/api/7000-series-tracker"
-        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
-
-
-@app.post("/api/7000-series-tracker/{Name}/{RunNumber}", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def save_7000_series_information(Name: str, RunNumber: int, token: str = Depends(get_current_username)):
-    """Used to retrieve results"""
-    try:
-        json_file = main_file_path_7000 + "7000-series.json"
-        input_data = {"DateTime": get_date(
-            "code-time"), "Submitter": Name, "RunNumber": RunNumber}
-        with open(json_file, 'r', encoding="utf-8") as fp:
-            json_file_loaded = json.load(fp)
-            if get_date("api-today") in json_file_loaded:
-                json_file_loaded[get_date("api-today")].append(input_data)
-            else:
-                json_file_loaded = {**json_file_loaded,
-                                    **{get_date("api-today"): []}}
-                json_file_loaded[get_date("api-today")].append(input_data)
-        with open(json_file, 'w', encoding="utf-8") as fp2:
-            json.dump(json_file_loaded, fp2, indent=4,  separators=(',', ': '))
-        return input_data
-    except:  # pylint: disable=bare-except
-        endpoint = "https://brandonmcfadden.com/api/7000-series-tracker"
-        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
-
-
 @app.get("/api/sorting_information/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
 async def get_sort_information(token: str = Depends(get_current_username)):
     """Used to retrieve results"""
@@ -650,42 +615,42 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
         raise HTTPException(
             status_code=400, detail='Something Went Wrong') from exc
 
+
 @app.post("/api/metra/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def metra_trips(response: Response, user: str, auth_token: str, type: str, date: str, line_id: str, run_number: str, origin: str = None, destination: str = None):
+async def metra_trips(request: Request, response: Response, user: str, auth_token: str, type: str):
     """Used to retrieve results"""
     try:
         if auth_token == deploy_secret:
+            request_input = json.load(request.body())
             json_file = main_file_path_transit_data + "metra.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
-            train_id = f"{date}-{line_id}-{run_number}"
+            train_id = f"{request_input['Date']}-{request_input['Line ID']}-{request_input['run_number']}"
             if user in json_file_loaded:
                 if type == "add":
                     if train_id in json_file_loaded[user]:
                         return_text = {"Status": "Train Already Present",
-                                    "TrainDetails": json_file_loaded[user][train_id]}
+                                       "TrainDetails": json_file_loaded[user][train_id]}
                         response.status_code = status.HTTP_208_ALREADY_REPORTED
                     else:
-                        train_input = {"Date": date, "Train": line_id, "Origin": origin.upper(
-                        ), "Destination": destination.upper(), "Service": line_id.capitalize()}
-                        json_file_loaded[user][train_id] = train_input
+                        json_file_loaded[user][train_id] = request_input
                         return_text = {"Status": "Train Added",
-                                    "TrainDetails": train_input}
+                                       "TrainDetails": request_input}
                         response.status_code = status.HTTP_201_CREATED
                 elif type == "remove":
                     if train_id in json_file_loaded[user]:
                         train_input = json_file_loaded[user][train_id]
                         json_file_loaded[user].pop(train_id, None)
                         return_text = {"Status": "Train Removed",
-                                    "TrainDetails": train_input}
+                                       "TrainDetails": request_input}
                         response.status_code = status.HTTP_202_ACCEPTED
                     else:
                         return_text = {
-                            "Status": "Failed to Remove Train. Train does not exist.", "TrainID": train_id}
+                            "Status": "Failed to Remove Train. Train does not exist.", "TrainID": request_input}
                         response.status_code = status.HTTP_404_NOT_FOUND
                 with open(json_file, 'w', encoding="utf-8") as fp2:
                     json.dump(json_file_loaded, fp2, indent=4,
-                            separators=(',', ': '))
+                              separators=(',', ': '))
             else:
                 return_text = {
                     "Status": "User Not Found - Unable to Proceed"}
@@ -705,9 +670,8 @@ async def get_metra_trips(user: str, token: str = Depends(get_current_username))
     try:
         json_file = main_file_path_transit_data + "metra.json"
         with open(json_file, 'r', encoding="utf-8") as fp:
-                json_file_loaded = json.load(fp)
+            json_file_loaded = json.load(fp)
         return JSONResponse(content=jsonable_encoder(json_file_loaded[user]))
     except:  # pylint: disable=bare-except
         endpoint = "https://brandonmcfadden.com/api/metra/get/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
-

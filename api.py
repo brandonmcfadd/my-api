@@ -612,3 +612,30 @@ async def get_transit_trips():
     except:  # pylint: disable=bare-except
         endpoint = "https://brandonmcfadden.com/api/transit-data/get/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+
+
+@app.post("/api/transit-data/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+async def transit_trips(request: Request, response: Response, auth_token: str, year: str, token: str = Depends(get_current_username)):
+    """Used to retrieve results"""
+    try:
+        if auth_token == deploy_secret:
+            json_file = main_file_path_transit_data + "transit-data.json"
+            json_file_input = request.json()
+            with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+            if year in json_file_loaded:
+                json_file_loaded[year] = json_file_input
+                response.status_code = status.HTTP_202_ACCEPTED
+            else:
+                json_file_loaded[year] = json_file_input
+                response.status_code = status.HTTP_201_CREATED
+            with open(json_file, 'w', encoding="utf-8") as fp2:
+                json.dump(json_file_loaded, fp2, indent=4,
+                          separators=(',', ': '))
+            return Response(content=json_file_loaded.read(), media_type="application/json")
+        else:
+            endpoint = "https://brandonmcfadden.com/api/transit-data/post/"
+            return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+    except:  # pylint: disable=bare-except
+        endpoint = "https://brandonmcfadden.com/api/transit-data/post/"
+        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))

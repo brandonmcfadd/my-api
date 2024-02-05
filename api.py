@@ -642,8 +642,6 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
                           separators=(',', ': '))
             return Response(content=json_file_loaded.read(), media_type="application/json")
         else:
-            endpoint = "https://brandonmcfadden.com/api/transit-data/post/"
-            return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+            raise HTTPException(status_code=401, detail="Auth Token not Provided")
     except:  # pylint: disable=bare-except
-        endpoint = "https://brandonmcfadden.com/api/transit-data/post/"
-        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+        raise HTTPException(status_code=400, detail="Something Went Wrong")

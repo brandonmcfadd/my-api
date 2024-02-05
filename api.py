@@ -9,7 +9,8 @@ import secrets
 from dotenv import load_dotenv  # Used to Load Env Var
 from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse, JSONResponse
+from fastapi.encoders import jsonable_encoder
 from fastapi import Response
 import redis.asyncio as redis
 from fastapi_limiter import FastAPILimiter
@@ -699,12 +700,13 @@ async def metra_trips(response: Response, user: str, auth_token: str, type: str,
 
 
 @app.get("/api/metra/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def get_metra_trips(token: str = Depends(get_current_username)):
+async def get_metra_trips(user: str, token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
         json_file = main_file_path_transit_data + "metra.json"
-        results = open(json_file, 'r', encoding="utf-8")
-        return Response(content=results.read(), media_type="application/json")
+        with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+        return JSONResponse(content=jsonable_encoder(json_file_loaded[user]))
     except:  # pylint: disable=bare-except
         endpoint = "https://brandonmcfadden.com/api/metra/get/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))

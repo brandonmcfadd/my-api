@@ -540,8 +540,8 @@ async def add_user_to_api(type: str, username: str, auth_token: str, token: str 
                 if username in json_file_loaded:
                     json_file_loaded.pop(username, None)
                 else:
-                    return {"username":username,"Status": "Failed to Remove User. User Does Not Exist."}
-                return_text = {"username":username,"Status": "Removed User."}
+                    return {"username": username, "Status": "Failed to Remove User. User Does Not Exist."}
+                return_text = {"username": username, "Status": "Removed User."}
             with open(json_file, 'w', encoding="utf-8") as fp2:
                 json.dump(json_file_loaded, fp2, indent=4,
                           separators=(',', ': '))
@@ -553,8 +553,9 @@ async def add_user_to_api(type: str, username: str, auth_token: str, token: str 
         endpoint = "https://brandonmcfadden.com/api/add_user"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
 
+
 @app.post("/api/amtrak/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def amtrak_trips(response: Response, auth_token: str, type:str, date: str, train: str, origin :str = None, destination:str = None, service:str = None, token: str = Depends(get_current_username)):
+async def amtrak_trips(response: Response, auth_token: str, type: str, date: str, train: str, origin: str = None, destination: str = None, service: str = None, token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
         if auth_token == deploy_secret:
@@ -564,21 +565,26 @@ async def amtrak_trips(response: Response, auth_token: str, type:str, date: str,
             train_id = f"{date}-{train}"
             if type == "add":
                 if train_id in json_file_loaded:
-                    return_text = {"Status":"Train Already Present","TrainDetails":json_file_loaded[train_id]}
+                    return_text = {"Status": "Train Already Present",
+                                   "TrainDetails": json_file_loaded[train_id]}
                     response.status_code = status.HTTP_208_ALREADY_REPORTED
                 else:
-                    train_input = {"Date":date,"Train":train,"Origin":origin.upper(),"Destination":destination.upper(),"Service":service.capitalize()}
+                    train_input = {"Date": date, "Train": train, "Origin": origin.upper(
+                    ), "Destination": destination.upper(), "Service": service.capitalize()}
                     json_file_loaded[train_id] = train_input
-                    return_text = {"Status":"Train Added","TrainDetails":train_input}
+                    return_text = {"Status": "Train Added",
+                                   "TrainDetails": train_input}
                     response.status_code = status.HTTP_201_CREATED
             elif type == "remove":
                 if train_id in json_file_loaded:
                     train_input = json_file_loaded[train_id]
                     json_file_loaded.pop(train_id, None)
-                    return_text = {"Status":"Train Removed","TrainDetails":train_input}
+                    return_text = {"Status": "Train Removed",
+                                   "TrainDetails": train_input}
                     response.status_code = status.HTTP_202_ACCEPTED
                 else:
-                    return_text = {"Status": "Failed to Remove Train. Train does not exist.","TrainID":train_id}
+                    return_text = {
+                        "Status": "Failed to Remove Train. Train does not exist.", "TrainID": train_id}
                     response.status_code = status.HTTP_404_NOT_FOUND
             with open(json_file, 'w', encoding="utf-8") as fp2:
                 json.dump(json_file_loaded, fp2, indent=4,
@@ -591,6 +597,7 @@ async def amtrak_trips(response: Response, auth_token: str, type:str, date: str,
         endpoint = "https://brandonmcfadden.com/api/amtrak/post/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
 
+
 @app.get("/api/amtrak/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
 async def get_amtrak_trips(token: str = Depends(get_current_username)):
     """Used to retrieve results"""
@@ -601,6 +608,7 @@ async def get_amtrak_trips(token: str = Depends(get_current_username)):
     except:  # pylint: disable=bare-except
         endpoint = "https://brandonmcfadden.com/api/amtrak/get/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+
 
 @app.get("/api/transit-data/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
 async def get_transit_trips():

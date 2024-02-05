@@ -650,7 +650,7 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
             status_code=400, detail='Something Went Wrong') from exc
 
 @app.post("/api/metra/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def metra_trips(response: Response, auth_token: str, type: str, date: str, line_id: str, run_number: str, origin: str = None, destination: str = None, token: str = Depends(get_current_username)):
+async def metra_trips(response: Response, user: str, auth_token: str, type: str, date: str, line_id: str, run_number: str, origin: str = None, destination: str = None):
     """Used to retrieve results"""
     try:
         if auth_token == deploy_secret:
@@ -658,32 +658,37 @@ async def metra_trips(response: Response, auth_token: str, type: str, date: str,
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
             train_id = f"{date}-{line_id}-{run_number}"
-            if type == "add":
-                if train_id in json_file_loaded:
-                    return_text = {"Status": "Train Already Present",
-                                   "TrainDetails": json_file_loaded[train_id]}
-                    response.status_code = status.HTTP_208_ALREADY_REPORTED
-                else:
-                    train_input = {"Date": date, "Train": line_id, "Origin": origin.upper(
-                    ), "Destination": destination.upper(), "Service": line_id.capitalize()}
-                    json_file_loaded[train_id] = train_input
-                    return_text = {"Status": "Train Added",
-                                   "TrainDetails": train_input}
-                    response.status_code = status.HTTP_201_CREATED
-            elif type == "remove":
-                if train_id in json_file_loaded:
-                    train_input = json_file_loaded[train_id]
-                    json_file_loaded.pop(train_id, None)
-                    return_text = {"Status": "Train Removed",
-                                   "TrainDetails": train_input}
-                    response.status_code = status.HTTP_202_ACCEPTED
-                else:
-                    return_text = {
-                        "Status": "Failed to Remove Train. Train does not exist.", "TrainID": train_id}
-                    response.status_code = status.HTTP_404_NOT_FOUND
-            with open(json_file, 'w', encoding="utf-8") as fp2:
-                json.dump(json_file_loaded, fp2, indent=4,
-                          separators=(',', ': '))
+            if user in json_file_loaded:
+                if type == "add":
+                    if train_id in json_file_loaded[user]:
+                        return_text = {"Status": "Train Already Present",
+                                    "TrainDetails": json_file_loaded[user][train_id]}
+                        response.status_code = status.HTTP_208_ALREADY_REPORTED
+                    else:
+                        train_input = {"Date": date, "Train": line_id, "Origin": origin.upper(
+                        ), "Destination": destination.upper(), "Service": line_id.capitalize()}
+                        json_file_loaded[user][train_id] = train_input
+                        return_text = {"Status": "Train Added",
+                                    "TrainDetails": train_input}
+                        response.status_code = status.HTTP_201_CREATED
+                elif type == "remove":
+                    if train_id in json_file_loaded[user]:
+                        train_input = json_file_loaded[user][train_id]
+                        json_file_loaded[user].pop(train_id, None)
+                        return_text = {"Status": "Train Removed",
+                                    "TrainDetails": train_input}
+                        response.status_code = status.HTTP_202_ACCEPTED
+                    else:
+                        return_text = {
+                            "Status": "Failed to Remove Train. Train does not exist.", "TrainID": train_id}
+                        response.status_code = status.HTTP_404_NOT_FOUND
+                with open(json_file, 'w', encoding="utf-8") as fp2:
+                    json.dump(json_file_loaded, fp2, indent=4,
+                            separators=(',', ': '))
+            else:
+                return_text = {
+                    "Status": "User Not Found - Unable to Proceed"}
+                response.status_code = status.HTTP_404_NOT_FOUND
             return return_text
         else:
             endpoint = "https://brandonmcfadden.com/api/metra/post/"

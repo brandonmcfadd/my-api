@@ -650,22 +650,22 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
             status_code=400, detail='Something Went Wrong') from exc
 
 @app.post("/api/metra/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def metra_trips(response: Response, auth_token: str, type: str, date: str, service: str, run_number: str, origin: str = None, destination: str = None, service: str = None, token: str = Depends(get_current_username)):
+async def metra_trips(response: Response, auth_token: str, type: str, date: str, line_id: str, run_number: str, origin: str = None, destination: str = None, token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
         if auth_token == deploy_secret:
             json_file = main_file_path_transit_data + "metra.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
-            train_id = f"{date}-{service}-{run_number}"
+            train_id = f"{date}-{line_id}-{run_number}"
             if type == "add":
                 if train_id in json_file_loaded:
                     return_text = {"Status": "Train Already Present",
                                    "TrainDetails": json_file_loaded[train_id]}
                     response.status_code = status.HTTP_208_ALREADY_REPORTED
                 else:
-                    train_input = {"Date": date, "Train": service, "Origin": origin.upper(
-                    ), "Destination": destination.upper(), "Service": service.capitalize()}
+                    train_input = {"Date": date, "Train": line_id, "Origin": origin.upper(
+                    ), "Destination": destination.upper(), "Service": line_id.capitalize()}
                     json_file_loaded[train_id] = train_input
                     return_text = {"Status": "Train Added",
                                    "TrainDetails": train_input}

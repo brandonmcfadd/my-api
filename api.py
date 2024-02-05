@@ -648,3 +648,59 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
     except Exception as exc:
         raise HTTPException(
             status_code=400, detail='Something Went Wrong') from exc
+
+@app.post("/api/metra/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+async def metra_trips(response: Response, auth_token: str, type: str, date: str, service: str, run_number: str, origin: str = None, destination: str = None, service: str = None, token: str = Depends(get_current_username)):
+    """Used to retrieve results"""
+    try:
+        if auth_token == deploy_secret:
+            json_file = main_file_path_transit_data + "metra.json"
+            with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+            train_id = f"{date}-{service}-{run_number}"
+            if type == "add":
+                if train_id in json_file_loaded:
+                    return_text = {"Status": "Train Already Present",
+                                   "TrainDetails": json_file_loaded[train_id]}
+                    response.status_code = status.HTTP_208_ALREADY_REPORTED
+                else:
+                    train_input = {"Date": date, "Train": service, "Origin": origin.upper(
+                    ), "Destination": destination.upper(), "Service": service.capitalize()}
+                    json_file_loaded[train_id] = train_input
+                    return_text = {"Status": "Train Added",
+                                   "TrainDetails": train_input}
+                    response.status_code = status.HTTP_201_CREATED
+            elif type == "remove":
+                if train_id in json_file_loaded:
+                    train_input = json_file_loaded[train_id]
+                    json_file_loaded.pop(train_id, None)
+                    return_text = {"Status": "Train Removed",
+                                   "TrainDetails": train_input}
+                    response.status_code = status.HTTP_202_ACCEPTED
+                else:
+                    return_text = {
+                        "Status": "Failed to Remove Train. Train does not exist.", "TrainID": train_id}
+                    response.status_code = status.HTTP_404_NOT_FOUND
+            with open(json_file, 'w', encoding="utf-8") as fp2:
+                json.dump(json_file_loaded, fp2, indent=4,
+                          separators=(',', ': '))
+            return return_text
+        else:
+            endpoint = "https://brandonmcfadden.com/api/metra/post/"
+            return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+    except:  # pylint: disable=bare-except
+        endpoint = "https://brandonmcfadden.com/api/metra/post/"
+        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+
+
+@app.get("/api/metra/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+async def get_metra_trips(token: str = Depends(get_current_username)):
+    """Used to retrieve results"""
+    try:
+        json_file = main_file_path_transit_data + "metra.json"
+        results = open(json_file, 'r', encoding="utf-8")
+        return Response(content=results.read(), media_type="application/json")
+    except:  # pylint: disable=bare-except
+        endpoint = "https://brandonmcfadden.com/api/metra/get/"
+        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+

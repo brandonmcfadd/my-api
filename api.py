@@ -632,7 +632,7 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
             if year in json_file_loaded:
-                json_file_loaded[year] = json_file_input
+                json_file_loaded[year] = {json_file_input}
                 response.status_code = status.HTTP_202_ACCEPTED
             else:
                 json_file_loaded[year] = json_file_input

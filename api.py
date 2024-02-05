@@ -628,7 +628,7 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
     try:
         if auth_token == deploy_secret:
             json_file = main_file_path_transit_data + "transit-data.json"
-            json_file_input = request.json()
+            json_file_input = request.body()
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
             if year in json_file_loaded:

@@ -671,7 +671,10 @@ async def get_metra_trips(user: str, token: str = Depends(get_current_username))
         json_file = main_file_path_transit_data + "metra.json"
         with open(json_file, 'r', encoding="utf-8") as fp:
             json_file_loaded = json.load(fp)
-        return JSONResponse(content=jsonable_encoder(json_file_loaded[user]))
+        if user == "all":
+            return JSONResponse(content=jsonable_encoder(json_file_loaded))
+        else:
+            return JSONResponse(content=jsonable_encoder(json_file_loaded[user]))
     except:  # pylint: disable=bare-except
         endpoint = "https://brandonmcfadden.com/api/metra/get/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))

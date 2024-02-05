@@ -621,28 +621,28 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
     """Used to retrieve results"""
     try:
         if auth_token == deploy_secret:
-            request_input = json.load(request.body())
+            request_input = await request.json()
             json_file = main_file_path_transit_data + "metra.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
-            train_id = f"{request_input['Date']}-{request_input['Line ID']}-{request_input['run_number']}"
+            train_id = f"{request_input['Date']}-{request_input['Line ID']}-{request_input['Run Number']}"
             if user in json_file_loaded:
                 if type == "add":
                     if train_id in json_file_loaded[user]:
                         return_text = {"Status": "Train Already Present",
-                                       "TrainDetails": json_file_loaded[user][train_id]}
+                                        "TrainDetails": json_file_loaded[user][train_id]}
                         response.status_code = status.HTTP_208_ALREADY_REPORTED
                     else:
                         json_file_loaded[user][train_id] = request_input
                         return_text = {"Status": "Train Added",
-                                       "TrainDetails": request_input}
+                                        "TrainDetails": request_input}
                         response.status_code = status.HTTP_201_CREATED
                 elif type == "remove":
                     if train_id in json_file_loaded[user]:
                         train_input = json_file_loaded[user][train_id]
                         json_file_loaded[user].pop(train_id, None)
                         return_text = {"Status": "Train Removed",
-                                       "TrainDetails": request_input}
+                                        "TrainDetails": train_input}
                         response.status_code = status.HTTP_202_ACCEPTED
                     else:
                         return_text = {
@@ -650,18 +650,18 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
                         response.status_code = status.HTTP_404_NOT_FOUND
                 with open(json_file, 'w', encoding="utf-8") as fp2:
                     json.dump(json_file_loaded, fp2, indent=4,
-                              separators=(',', ': '))
+                                separators=(',', ': '))
             else:
                 return_text = {
                     "Status": "User Not Found - Unable to Proceed"}
                 response.status_code = status.HTTP_404_NOT_FOUND
             return return_text
         else:
-            endpoint = "https://brandonmcfadden.com/api/metra/post/"
-            return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
-    except:  # pylint: disable=bare-except
-        endpoint = "https://brandonmcfadden.com/api/metra/post/"
-        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+            raise HTTPException(
+                status_code=400, detail='Something Went Wrong')
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400, detail='Something Went Wrong') from exc
 
 
 @app.get("/api/metra/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)

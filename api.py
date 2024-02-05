@@ -559,7 +559,7 @@ async def amtrak_trips(response: Response, auth_token: str, type: str, date: str
     """Used to retrieve results"""
     try:
         if auth_token == deploy_secret:
-            json_file = main_file_path_amtrak + "amtrak.json"
+            json_file = main_file_path_transit_data + "amtrak.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
             train_id = f"{date}-{train}"
@@ -602,7 +602,7 @@ async def amtrak_trips(response: Response, auth_token: str, type: str, date: str
 async def get_amtrak_trips(token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
-        json_file = main_file_path_amtrak + "amtrak.json"
+        json_file = main_file_path_transit_data + "amtrak.json"
         results = open(json_file, 'r', encoding="utf-8")
         return Response(content=results.read(), media_type="application/json")
     except:  # pylint: disable=bare-except

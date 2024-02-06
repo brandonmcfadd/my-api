@@ -6,6 +6,7 @@ import json
 import logging
 from logging.handlers import RotatingFileHandler
 import secrets
+import pandas as pd
 from dotenv import load_dotenv  # Used to Load Env Var
 from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -612,7 +613,7 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
 
 
 @app.post("/api/metra/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def metra_trips(request: Request, response: Response, user: str, auth_token: str, type: str):
+async def metra_trips(request: Request, response: Response, user: str, auth_token: str, type: str, token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
         if auth_token == deploy_secret:
@@ -693,7 +694,7 @@ async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Dep
                 raise HTTPException(
                     status_code=404, detail='User Not Found')
             return Response(content=output_text, media_type="text/csv", headers={
-                    "Content-Disposition": f"attachment; filename=metra-trips-{user}.csv"})
-    except:  # pylint: disable=bare-except
-        endpoint = "https://brandonmcfadden.com/api/metra/get/"
-        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+                "Content-Disposition": f"attachment; filename=metra-trips-{user}.csv"})
+    except Exception as exc:
+        raise HTTPException(
+            status_code=404, detail='Unable to provide results') from exc

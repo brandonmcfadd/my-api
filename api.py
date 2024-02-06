@@ -622,6 +622,7 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
     try:
         if auth_token == deploy_secret:
             request_input = await request.json()
+            print(request_input)
             if 'data' in request_input:
                 request_input = request_input['data']
             print(request_input)

@@ -622,11 +622,11 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
     try:
         if auth_token == deploy_secret:
             request_input = await request.json()
-            print(request_input)
             if 'data' in request_input:
                 request_input = request_input['data']
             elif 'body' in request_input:
                 request_input = request_input['body']
+            print(request_input)
             json_file = main_file_path_transit_data + "metra.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)

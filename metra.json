@@ -1,0 +1,33 @@
+{
+    "BSM": {
+        "2024-02-02-UP-NW-603": {
+            "Date": "2024-02-02",
+            "Line ID": "UP-NW",
+            "Run Number": "603",
+            "Origin": "Jefferson Park",
+            "Destination": "Crystal Lake",
+            "Origin Station - Mileage": 9.1,
+            "Origin Station - Kilometers": 14.6,
+            "Destination Station - Mileage": 43.2,
+            "Destination Station - Kilometers": 69.5,
+            "Track Miles": 34.1,
+            "Track Kilometers": 54.9
+        },
+        "2024-02-02-UP-NW-646": {
+            "Date": "2024-02-02",
+            "Line ID": "UP-NW",
+            "Run Number": "646",
+            "Origin": "Woodstock",
+            "Destination": "Dee Road",
+            "Origin Station - Mileage": 51.6,
+            "Origin Station - Kilometers": 83,
+            "Destination Station - Mileage": 15.0,
+            "Destination Station - Kilometers": 24.1,
+            "Track Miles": 36.6,
+            "Track Kilometers": 58.9
+        }
+    },
+    "MJW": {},
+    "Metz": {},
+    "Test": {}
+}

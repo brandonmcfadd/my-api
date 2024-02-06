@@ -717,7 +717,7 @@ async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Dep
                         output_text = f"{output_text}\n{new_line}"
             elif user in json_file_loaded:
                 for item in json_file_loaded[user]:
-                    new_line = f"{user},{json_file_loaded[username][item]['Date']},{json_file_loaded[username][item]['Line ID']},{json_file_loaded[username][item]['Run Number']},{json_file_loaded[username][item]['Origin']},{json_file_loaded[username][item]['Origin Station - Mileage']},{json_file_loaded[username][item]['Origin Station - Kilometers']},{json_file_loaded[username][item]['Destination']},{json_file_loaded[username][item]['Destination Station - Mileage']},{json_file_loaded[username][item]['Destination Station - Kilometers']},{json_file_loaded[username][item]['Track Miles']},{json_file_loaded[username][item]['Track Kilometers']}"
+                    new_line = f"{user},{json_file_loaded[user][item]['Date']},{json_file_loaded[user][item]['Line ID']},{json_file_loaded[user][item]['Run Number']},{json_file_loaded[user][item]['Origin']},{json_file_loaded[user][item]['Origin Station - Mileage']},{json_file_loaded[user][item]['Origin Station - Kilometers']},{json_file_loaded[user][item]['Destination']},{json_file_loaded[user][item]['Destination Station - Mileage']},{json_file_loaded[user][item]['Destination Station - Kilometers']},{json_file_loaded[user][item]['Track Miles']},{json_file_loaded[user][item]['Track Kilometers']}"
                     output_text = f"{output_text}\n{new_line}"
             else:
                 raise HTTPException(

@@ -629,19 +629,19 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
                 if type == "add":
                     if train_id in json_file_loaded[user]:
                         return_text = {"Status": "Train Already Present",
-                                        "TrainDetails": json_file_loaded[user][train_id]}
+                                       "TrainDetails": json_file_loaded[user][train_id]}
                         response.status_code = status.HTTP_208_ALREADY_REPORTED
                     else:
                         json_file_loaded[user][train_id] = request_input
                         return_text = {"Status": "Train Added",
-                                        "TrainDetails": request_input}
+                                       "TrainDetails": request_input}
                         response.status_code = status.HTTP_201_CREATED
                 elif type == "remove":
                     if train_id in json_file_loaded[user]:
                         train_input = json_file_loaded[user][train_id]
                         json_file_loaded[user].pop(train_id, None)
                         return_text = {"Status": "Train Removed",
-                                        "TrainDetails": train_input}
+                                       "TrainDetails": train_input}
                         response.status_code = status.HTTP_202_ACCEPTED
                     else:
                         return_text = {
@@ -649,7 +649,7 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
                         response.status_code = status.HTTP_404_NOT_FOUND
                 with open(json_file, 'w', encoding="utf-8") as fp2:
                     json.dump(json_file_loaded, fp2, indent=4,
-                                separators=(',', ': '))
+                              separators=(',', ': '))
             else:
                 return_text = {
                     "Status": "User Not Found - Unable to Proceed"}
@@ -664,16 +664,36 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
 
 
 @app.get("/api/metra/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def get_metra_trips(user: str, token: str = Depends(get_current_username)):
+async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
-        json_file = main_file_path_transit_data + "metra.json"
-        with open(json_file, 'r', encoding="utf-8") as fp:
-            json_file_loaded = json.load(fp)
-        if user in ["all", "All"]:
-            return JSONResponse(content=jsonable_encoder(json_file_loaded))
-        else:
-            return JSONResponse(content=jsonable_encoder(json_file_loaded[user]))
+        if output_type == "JSON":
+            json_file = main_file_path_transit_data + "metra.json"
+            with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+            if user in ["all", "All"]:
+                return JSONResponse(content=jsonable_encoder(json_file_loaded))
+            else:
+                return JSONResponse(content=jsonable_encoder(json_file_loaded[user]))
+        elif output_type == "CSV":
+            output_text = "User,Date,Line,RunNumber,Origin,Destination"
+            json_file = main_file_path_transit_data + "metra.json"
+            with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+            if user in ["all", "All"]:
+                for username in json_file_loaded:
+                    for item in json_file_loaded[username]:
+                        new_line = f"{username},{json_file_loaded[username][item]['Date']},{json_file_loaded[username][item]['Line ID']},{json_file_loaded[username][item]['Run Number']},{json_file_loaded[username][item]['Origin']},{json_file_loaded[username][item]['Destination']}"
+                        output_text = f"{output_text}\n{new_line}"
+            elif user in json_file_loaded:
+                for item in json_file_loaded[user]:
+                    new_line = f"{user},{json_file_loaded[user][item]['Date']},{json_file_loaded[user][item]['Line ID']},{json_file_loaded[user][item]['Run Number']},{json_file_loaded[user][item]['Origin']},{json_file_loaded[user][item]['Destination']}"
+                    output_text = f"{output_text}\n{new_line}"
+            else:
+                raise HTTPException(
+                    status_code=404, detail='User Not Found')
+            return Response(content=output_text, media_type="text/csv", headers={
+                    "Content-Disposition": f"attachment; filename=metra-trips-{user}.csv"})
     except:  # pylint: disable=bare-except
         endpoint = "https://brandonmcfadden.com/api/metra/get/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))

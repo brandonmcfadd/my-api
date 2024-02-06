@@ -638,19 +638,34 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
                 if type == "add":
                     if train_id in json_file_loaded[user]:
                         return_text = {"Status": "Train Already Present",
-                                       "TrainDetails": json_file_loaded[user][train_id]}
+                                        "TrainDetails": json_file_loaded[user][train_id]}
                         response.status_code = status.HTTP_208_ALREADY_REPORTED
                     else:
+                        metra_stations_file_path = main_file_path_transit_data + "metra_stations.json"
+                        with open(metra_stations_file_path, 'r', encoding="utf-8") as fp2:
+                            metra_stations = json.load(fp2)
+                        request_input['Origin Station - Mileage'] = metra_stations[request_input['Line ID']][request_input['Origin']]['Miles']
+                        request_input['Origin Station - Kilometers'] = metra_stations[request_input['Line ID']][request_input['Origin']]['Kilometers']
+                        request_input['Destination Station - Mileage'] = metra_stations[request_input['Line ID']][request_input['Destination']]['Miles']
+                        request_input['Destination Station - Kilometers'] = metra_stations[request_input['Line ID']][request_input['Destination']]['Kilometers']
+                        track_miles = request_input['Origin Station - Mileage'] - request_input['Destination Station - Mileage']
+                        if track_miles < 0:
+                            track_miles = track_miles * -1
+                        track_kilometers = request_input['Origin Station - Kilometers'] - request_input['Destination Station - Kilometers']
+                        if track_kilometers < 0:
+                            track_kilometers = track_kilometers * -1
+                        request_input['Track Miles'] = track_miles
+                        request_input['Track Kilometers'] = track_kilometers
                         json_file_loaded[user][train_id] = request_input
                         return_text = {"Status": "Train Added",
-                                       "TrainDetails": request_input}
+                                        "TrainDetails": request_input}
                         response.status_code = status.HTTP_201_CREATED
                 elif type == "remove":
                     if train_id in json_file_loaded[user]:
                         train_input = json_file_loaded[user][train_id]
                         json_file_loaded[user].pop(train_id, None)
                         return_text = {"Status": "Train Removed",
-                                       "TrainDetails": train_input}
+                                        "TrainDetails": train_input}
                         response.status_code = status.HTTP_202_ACCEPTED
                     else:
                         return_text = {
@@ -658,7 +673,7 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
                         response.status_code = status.HTTP_404_NOT_FOUND
                 with open(json_file, 'w', encoding="utf-8") as fp2:
                     json.dump(json_file_loaded, fp2, indent=4,
-                              separators=(',', ': '))
+                                separators=(',', ': '))
             else:
                 return_text = {
                     "Status": "User Not Found - Unable to Proceed"}

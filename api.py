@@ -35,8 +35,9 @@ main_file_path_json = main_file_path + "train_arrivals/json/"
 wmata_main_file_path_json = wmata_main_file_path + "train_arrivals/json/"
 main_file_path_csv = main_file_path + "train_arrivals/csv/"
 main_file_path_csv_month = main_file_path + "train_arrivals/csv_month/"
-deploy_secret = os.getenv('DEPLOY_SECRET')
+api_auth_token = os.getenv('API_AUTH_TOKEN')
 api_auth_key = os.getenv('API_AUTH_KEY')
+environment = os.getenv('ENVIRONMENT')
 
 
 def get_date(date_type):
@@ -159,18 +160,25 @@ async def startup():
 @app.middleware("http")
 async def check_for_header(request: Request, call_next):
     """makes sure the request came through the Express Proxy"""
-    try:
-        proxy_header = request.headers.get('x-api-proxy')
-        if proxy_header == api_auth_key:
-            start_time = time.time()
-            response = await call_next(request)
-            process_time = time.time() - start_time
-            response.headers["X-Process-Time"] = str(process_time)
-            return response
-        else:
+    if environment != "DEV":
+        try:
+            proxy_header = request.headers.get('x-api-proxy')
+            if proxy_header == api_auth_key:
+                start_time = time.time()
+                response = await call_next(request)
+                process_time = time.time() - start_time
+                response.headers["X-Process-Time"] = str(process_time)
+                return response
+            else:
+                return HTMLResponse(status_code=403, content="Missing Required Header. Are you using the right Address?")
+        except:  # pylint: disable=bare-except
             return HTMLResponse(status_code=403, content="Missing Required Header. Are you using the right Address?")
-    except:  # pylint: disable=bare-except
-        return HTMLResponse(status_code=403, content="Missing Required Header. Are you using the right Address?")
+    else:
+        start_time = time.time()
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        response.headers["X-Process-Time"] = str(process_time)
+        return response
 
 
 @app.get("/", dependencies=[Depends(RateLimiter(times=2, seconds=1))], response_class=RedirectResponse, status_code=302)
@@ -477,7 +485,7 @@ async def return_arrivals_for_date_month(agency: str, date: str = None, availabi
 async def add_user_to_api(type: str, username: str, auth_token: str, token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
-        if auth_token == deploy_secret:
+        if auth_token == api_auth_token:
             json_file = api_file_path + ".tokens"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
@@ -520,7 +528,7 @@ async def add_user_to_api(type: str, username: str, auth_token: str, token: str 
 async def amtrak_trips(response: Response, auth_token: str, type: str, date: str, train: str, origin: str = None, destination: str = None, service: str = None, token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
-        if auth_token == deploy_secret:
+        if auth_token == api_auth_token:
             json_file = main_file_path_transit_data + "amtrak.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
@@ -588,7 +596,7 @@ async def get_transit_trips():
 async def transit_trips(request: Request, response: Response, auth_token: str, year: str, token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
-        if auth_token == deploy_secret:
+        if auth_token == api_auth_token:
             json_file = main_file_path_transit_data + "transit-data.json"
             request_body_input = await request.json()
             with open(json_file, 'r', encoding="utf-8") as fp:
@@ -613,10 +621,10 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
 
 
 @app.post("/api/metra/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def metra_trips(request: Request, response: Response, user: str, auth_token: str, type: str, token: str = Depends(get_current_username)):
+async def metra_trips(request: Request, response: Response, user: str, auth_token: str, type: str):
     """Used to retrieve results"""
     try:
-        if auth_token == deploy_secret:
+        if auth_token == api_auth_token:
             request_input = await request.json()
             if 'data' in request_input:
                 request_input = request_input['data']

@@ -625,7 +625,8 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
             print(request_input)
             if 'data' in request_input:
                 request_input = request_input['data']
-            print(request_input)
+            elif 'body' in request_input:
+                request_input = request_input['body']
             json_file = main_file_path_transit_data + "metra.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)

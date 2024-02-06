@@ -250,7 +250,6 @@ async def return_arrivals_for_date_cta_v2(date: str, token: str = Depends(get_cu
     else:
         try:
             csv_file = main_file_path_csv + "cta/" + date + ".csv"
-            print(csv_file)
             results = open(csv_file, 'r', encoding="utf-8")
             return StreamingResponse(
                 results,
@@ -275,7 +274,6 @@ async def return_arrivals_for_date_month_cta_v2(date: str, token: str = Depends(
     else:
         try:
             csv_file = main_file_path_csv_month + "cta/" + date + ".csv"
-            print(csv_file)
             results = open(csv_file, 'r', encoding="utf-8")
             return StreamingResponse(
                 results,
@@ -293,7 +291,6 @@ async def return_special_station_json(token: str = Depends(get_current_username)
     """Used to retrieve results"""
     try:
         json_file = main_file_path + "train_arrivals/json/special-station.json"
-        print(json_file)
         results = open(json_file, 'r', encoding="utf-8")
         return Response(content=results.read(), media_type="application/json")
     except:  # pylint: disable=bare-except
@@ -414,7 +411,6 @@ async def return_arrivals_for_date(agency: str, date: str = None, availability: 
         try:
             if agency == "cta":
                 csv_file = main_file_path_csv + "cta/" + date + ".csv"
-                print(csv_file)
                 results = open(csv_file, 'r', encoding="utf-8")
                 return StreamingResponse(
                     results,
@@ -457,7 +453,6 @@ async def return_arrivals_for_date_month(agency: str, date: str = None, availabi
         try:
             if agency == "cta":
                 csv_file = main_file_path_csv_month + "cta/" + date + ".csv"
-                print(csv_file)
                 results = open(csv_file, 'r', encoding="utf-8")
                 return StreamingResponse(
                     results,
@@ -626,7 +621,6 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
                 request_input = request_input['data']
             elif 'body' in request_input:
                 request_input = request_input['body']
-            print(request_input)
             json_file = main_file_path_transit_data + "metra.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)

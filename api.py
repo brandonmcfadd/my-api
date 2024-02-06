@@ -652,12 +652,12 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
                                                                                         ][request_input['Destination']]['Miles']
                         request_input['Destination Station - Kilometers'] = metra_stations[request_input['Line ID']
                                                                                            ][request_input['Destination']]['Kilometers']
-                        track_miles = request_input['Origin Station - Mileage'] - \
-                            request_input['Destination Station - Mileage']
+                        track_miles = round(request_input['Origin Station - Mileage'] - \
+                            request_input['Destination Station - Mileage'], 2)
                         if track_miles < 0:
                             track_miles = track_miles * -1
-                        track_kilometers = request_input['Origin Station - Kilometers'] - \
-                            request_input['Destination Station - Kilometers']
+                        track_kilometers = round(request_input['Origin Station - Kilometers'] - \
+                            request_input['Destination Station - Kilometers'], 2)
                         if track_kilometers < 0:
                             track_kilometers = track_kilometers * -1
                         request_input['Track Miles'] = track_miles

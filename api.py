@@ -664,8 +664,15 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
                             request_input['Destination Station - Kilometers'], 2)
                         if track_kilometers < 0:
                             track_kilometers = track_kilometers * -1
+                        if (request_input['Origin Station - Zone'] in [2,3,4] and request_input['Destination Station - Zone'] in [2,3,4]) or (request_input['Origin Station - Zone'] in [1,2] and request_input['Destination Station - Zone'] in [1,2]):
+                            trip_cost = 3.75
+                        elif (request_input['Origin Station - Zone'] in [1] and request_input['Destination Station - Zone'] in [3]) or (request_input['Origin Station - Zone'] in [3] and request_input['Destination Station - Zone'] in [1]):
+                            trip_cost = 5.50
+                        elif (request_input['Origin Station - Zone'] in [1] and request_input['Destination Station - Zone'] in [4]) or (request_input['Origin Station - Zone'] in [4] and request_input['Destination Station - Zone'] in [1]):
+                            trip_cost = 6.75
                         request_input['Track Miles'] = track_miles
                         request_input['Track Kilometers'] = track_kilometers
+                        request_input['Trip Cost'] = trip_cost
                         json_file_loaded[user][train_id] = request_input
                         return_text = {"Status": "Train Added",
                                        "TrainDetails": request_input}

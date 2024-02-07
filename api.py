@@ -708,7 +708,7 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
 async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
-        if output_type == "JSON":
+        if output_type.upper() == "JSON":
             json_file = main_file_path_transit_data + "metra.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
@@ -716,21 +716,21 @@ async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Dep
                 return JSONResponse(content=jsonable_encoder(json_file_loaded))
             else:
                 return JSONResponse(content=jsonable_encoder(json_file_loaded[user]))
-        elif output_type == "CSV":
-            output_text = "User,Date,Route,RunNumber,Origin,Origin_Zone,Origin_Miles,Origin_Kilometers,Destination,Destination_Zone,Destination_Miles,Destination_Kilometers,Trip_Miles,Trip_Kilometers,Trip_Cost"
+        elif output_type.upper() == "CSV":
+            output_text = "User,Date,Route,RunNumber,Origin,Origin_Zone,Origin_Miles,Origin_Kilometers,Destination,Destination_Zone,Destination_Miles,Destination_Kilometers,Trip_Miles,Trip_Kilometers,Trip_Cost,Ticket_Type"
             json_file = main_file_path_transit_data + "metra.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
-            if user in ["all", "All"]:
+            if user.upper() == "ALL":
                 for username in json_file_loaded:
                     for item in json_file_loaded[username]:
                         trip_cost = f"{json_file_loaded[username][item]['Trip Cost']:.2f}"
-                        new_line = f"{username},{json_file_loaded[username][item]['Date']},{json_file_loaded[username][item]['Line ID']},{json_file_loaded[username][item]['Run Number']},{json_file_loaded[username][item]['Origin']},{json_file_loaded[username][item]['Origin Station - Zone']},{json_file_loaded[username][item]['Origin Station - Mileage']},{json_file_loaded[username][item]['Origin Station - Kilometers']},{json_file_loaded[username][item]['Destination']},{json_file_loaded[username][item]['Destination Station - Zone']},{json_file_loaded[username][item]['Destination Station - Mileage']},{json_file_loaded[username][item]['Destination Station - Kilometers']},{json_file_loaded[username][item]['Track Miles']},{json_file_loaded[username][item]['Track Kilometers']},{trip_cost}"
+                        new_line = f"{username},{json_file_loaded[username][item]['Date']},{json_file_loaded[username][item]['Line ID']},{json_file_loaded[username][item]['Run Number']},{json_file_loaded[username][item]['Origin']},{json_file_loaded[username][item]['Origin Station - Zone']},{json_file_loaded[username][item]['Origin Station - Mileage']},{json_file_loaded[username][item]['Origin Station - Kilometers']},{json_file_loaded[username][item]['Destination']},{json_file_loaded[username][item]['Destination Station - Zone']},{json_file_loaded[username][item]['Destination Station - Mileage']},{json_file_loaded[username][item]['Destination Station - Kilometers']},{json_file_loaded[username][item]['Track Miles']},{json_file_loaded[username][item]['Track Kilometers']},{trip_cost},{json_file_loaded[username][item]['Ticket Type']}"
                         output_text = f"{output_text}\n{new_line}"
             elif user in json_file_loaded:
                 for item in json_file_loaded[user]:
                     trip_cost = f"{json_file_loaded[user][item]['Trip Cost']:.2f}"
-                    new_line = f"{user},{json_file_loaded[user][item]['Date']},{json_file_loaded[user][item]['Line ID']},{json_file_loaded[user][item]['Run Number']},{json_file_loaded[user][item]['Origin']},{json_file_loaded[user][item]['Origin Station - Zone']},{json_file_loaded[user][item]['Origin Station - Mileage']},{json_file_loaded[user][item]['Origin Station - Kilometers']},{json_file_loaded[user][item]['Destination']},{json_file_loaded[user][item]['Destination Station - Zone']},{json_file_loaded[user][item]['Destination Station - Mileage']},{json_file_loaded[user][item]['Destination Station - Kilometers']},{json_file_loaded[user][item]['Track Miles']},{json_file_loaded[user][item]['Track Kilometers']},{trip_cost}"
+                    new_line = f"{user},{json_file_loaded[user][item]['Date']},{json_file_loaded[user][item]['Line ID']},{json_file_loaded[user][item]['Run Number']},{json_file_loaded[user][item]['Origin']},{json_file_loaded[user][item]['Origin Station - Zone']},{json_file_loaded[user][item]['Origin Station - Mileage']},{json_file_loaded[user][item]['Origin Station - Kilometers']},{json_file_loaded[user][item]['Destination']},{json_file_loaded[user][item]['Destination Station - Zone']},{json_file_loaded[user][item]['Destination Station - Mileage']},{json_file_loaded[user][item]['Destination Station - Kilometers']},{json_file_loaded[user][item]['Track Miles']},{json_file_loaded[user][item]['Track Kilometers']},{trip_cost},{json_file_loaded[user][item]['Ticket Type']}"
                     output_text = f"{output_text}\n{new_line}"
             else:
                 raise HTTPException(

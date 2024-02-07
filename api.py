@@ -751,8 +751,8 @@ async def metra_data_password_check(request: Request, response: Response):
                 encoding='utf-8')
         metra_tokens = json.load(file)
         request_input = await request.json()
-        if request_input['username'].upper() in metra_tokens:
-            if request_input['password'] == metra_tokens[request_input['username']]:
+        if request_input['Username'].upper() in metra_tokens:
+            if request_input['Password'] == metra_tokens[request_input['Username'].upper()]:
                 return_text = {"Status": "Valid Username and Password"}
                 response.status_code = status.HTTP_202_ACCEPTED
             else:

@@ -741,3 +741,26 @@ async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Dep
     except Exception as exc:
         raise HTTPException(
             status_code=404, detail='Unable to provide results') from exc
+
+@app.post("/api/metra/password_check", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+async def metra_data_password_check(response: Response, username:str, password:str):
+    """Used to retrieve results"""
+    try:
+        file = open(file=api_file_path + '.metra_data_tokens',
+                mode='r',
+                encoding='utf-8')
+        metra_tokens = json.load(file)
+        if username.upper() in metra_tokens:
+            if password == metra_tokens[username.upper()]:
+                return_text = {"Status": "Valid Username and Password"}
+                response.status_code = status.HTTP_202_ACCEPTED
+            else:
+                return_text = {"Status": "Incorrect Username or Password"}
+                response.status_code = status.HTTP_401_UNAUTHORIZED
+        else:
+            return_text = {"Status": "Incorrect Username or Password"}
+            response.status_code = status.HTTP_401_UNAUTHORIZED
+        return return_text
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400, detail='Something Went Wrong') from exc

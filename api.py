@@ -644,10 +644,14 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
                         metra_stations_file_path = main_file_path_transit_data + "metra_stations.json"
                         with open(metra_stations_file_path, 'r', encoding="utf-8") as fp2:
                             metra_stations = json.load(fp2)
+                        request_input['Origin Station - Zone'] = metra_stations[request_input['Line ID']
+                                                                                   ][request_input['Origin']]['Zone']
                         request_input['Origin Station - Mileage'] = metra_stations[request_input['Line ID']
                                                                                    ][request_input['Origin']]['Miles']
                         request_input['Origin Station - Kilometers'] = metra_stations[request_input['Line ID']
                                                                                       ][request_input['Origin']]['Kilometers']
+                        request_input['Destination Station - Zone'] = metra_stations[request_input['Line ID']
+                                                                                   ][request_input['Destination']]['Zone']
                         request_input['Destination Station - Mileage'] = metra_stations[request_input['Line ID']
                                                                                         ][request_input['Destination']]['Miles']
                         request_input['Destination Station - Kilometers'] = metra_stations[request_input['Line ID']

@@ -706,7 +706,7 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
 
 
 @app.get("/api/metra/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def get_metra_trips(request: Request, response: Response, output_type: str = "JSON", token: str = Depends(get_current_username)):
+async def get_metra_trips(request: Request, response: Response, user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
         file = open(file=api_file_path + '.metra_data_tokens',

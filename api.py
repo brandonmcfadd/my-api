@@ -634,7 +634,7 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
             train_id = f"{request_input['Date']}-{request_input['Line ID']}-{request_input['Run Number']}"
-            if user in json_file_loaded:
+            if user.upper() in json_file_loaded:
                 if type == "add":
                     if train_id in json_file_loaded[user]:
                         return_text = {"Status": "Train Already Present",
@@ -727,7 +727,7 @@ async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Dep
                         trip_cost = f"{json_file_loaded[username][item]['Trip Cost']:.2f}"
                         new_line = f"{username},{json_file_loaded[username][item]['Date']},{json_file_loaded[username][item]['Line ID']},{json_file_loaded[username][item]['Run Number']},{json_file_loaded[username][item]['Origin']},{json_file_loaded[username][item]['Origin Station - Zone']},{json_file_loaded[username][item]['Origin Station - Mileage']},{json_file_loaded[username][item]['Origin Station - Kilometers']},{json_file_loaded[username][item]['Destination']},{json_file_loaded[username][item]['Destination Station - Zone']},{json_file_loaded[username][item]['Destination Station - Mileage']},{json_file_loaded[username][item]['Destination Station - Kilometers']},{json_file_loaded[username][item]['Track Miles']},{json_file_loaded[username][item]['Track Kilometers']},{trip_cost},{json_file_loaded[username][item]['Ticket Type']}"
                         output_text = f"{output_text}\n{new_line}"
-            elif user in json_file_loaded:
+            elif user.upper() in json_file_loaded:
                 for item in json_file_loaded[user]:
                     trip_cost = f"{json_file_loaded[user][item]['Trip Cost']:.2f}"
                     new_line = f"{user},{json_file_loaded[user][item]['Date']},{json_file_loaded[user][item]['Line ID']},{json_file_loaded[user][item]['Run Number']},{json_file_loaded[user][item]['Origin']},{json_file_loaded[user][item]['Origin Station - Zone']},{json_file_loaded[user][item]['Origin Station - Mileage']},{json_file_loaded[user][item]['Origin Station - Kilometers']},{json_file_loaded[user][item]['Destination']},{json_file_loaded[user][item]['Destination Station - Zone']},{json_file_loaded[user][item]['Destination Station - Mileage']},{json_file_loaded[user][item]['Destination Station - Kilometers']},{json_file_loaded[user][item]['Track Miles']},{json_file_loaded[user][item]['Track Kilometers']},{trip_cost},{json_file_loaded[user][item]['Ticket Type']}"

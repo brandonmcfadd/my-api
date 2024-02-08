@@ -709,9 +709,8 @@ async def get_metra_trips(request: Request, response: Response, user: str, outpu
     """Used to retrieve results"""
     try:
         proxy_header = request.headers.get('x-password-verified')
-        print(proxy_header)
         user_input = user.upper()
-        if output_type.upper() == "JSON" and proxy_header == "true":
+        if output_type.upper() == "JSON" and proxy_header == api_auth_key:
             json_file = main_file_path_transit_data + "metra.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
@@ -719,7 +718,7 @@ async def get_metra_trips(request: Request, response: Response, user: str, outpu
                 return JSONResponse(content=jsonable_encoder(json_file_loaded))
             else:
                 return JSONResponse(content=jsonable_encoder(json_file_loaded[user_input]))
-        elif output_type.upper() == "CSV" and proxy_header == "true":
+        elif output_type.upper() == "CSV" and proxy_header == api_auth_key:
             output_text = "User,Date,Route,RunNumber,Origin,Origin_Zone,Origin_Miles,Origin_Kilometers,Destination,Destination_Zone,Destination_Miles,Destination_Kilometers,Trip_Miles,Trip_Kilometers,Trip_Cost,Ticket_Type"
             json_file = main_file_path_transit_data + "metra.json"
             with open(json_file, 'r', encoding="utf-8") as fp:

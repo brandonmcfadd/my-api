@@ -705,11 +705,13 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
 
 
 @app.get("/api/metra/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
+async def get_metra_trips(request: Request, response: Response, user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
+        proxy_header = request.headers.get('x-password-verified')
+        print(proxy_header)
         user_input = user.upper()
-        if output_type.upper() == "JSON":
+        if output_type.upper() == "JSON" and proxy_header == "true":
             json_file = main_file_path_transit_data + "metra.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
@@ -717,7 +719,7 @@ async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Dep
                 return JSONResponse(content=jsonable_encoder(json_file_loaded))
             else:
                 return JSONResponse(content=jsonable_encoder(json_file_loaded[user_input]))
-        elif output_type.upper() == "CSV":
+        elif output_type.upper() == "CSV" and proxy_header == "true":
             output_text = "User,Date,Route,RunNumber,Origin,Origin_Zone,Origin_Miles,Origin_Kilometers,Destination,Destination_Zone,Destination_Miles,Destination_Kilometers,Trip_Miles,Trip_Kilometers,Trip_Cost,Ticket_Type"
             json_file = main_file_path_transit_data + "metra.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
@@ -735,7 +737,7 @@ async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Dep
                     output_text = f"{output_text}\n{new_line}"
             else:
                 raise HTTPException(
-                    status_code=404, detail='User Not Found')
+                    status_code=401, detail='User Not Found')
             return Response(content=output_text, media_type="text/csv", headers={
                 "Content-Disposition": f"attachment; filename=metra-trips-{user_input}.csv"})
     except Exception as exc:

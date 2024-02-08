@@ -153,3 +153,5 @@ cython_debug/
 .tokens
 .metra_data_tokens
 metra.json
+metra_stations.json
+dump.rdb

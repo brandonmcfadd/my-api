@@ -709,7 +709,6 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
 async def get_metra_trips(request: Request, response: Response, user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
-        proxy_header = request.headers.get('x-password-verified')
         user_input = user.upper()
         if output_type.upper() == "JSON" and proxy_header == api_auth_key:
             json_file = main_file_path_transit_data + "metra.json"

@@ -705,10 +705,6 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
 
 
 @app.get("/api/metra/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-<<<<<<< HEAD
-<<<<<<< HEAD
-async def get_metra_trips(request: Request, response: Response, output_type: str = "JSON", token: str = Depends(get_current_username)):
-=======
 async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
@@ -742,86 +738,6 @@ async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Dep
                     status_code=404, detail='User Not Found')
             return Response(content=output_text, media_type="text/csv", headers={
                 "Content-Disposition": f"attachment; filename=metra-trips-{user_input}.csv"})
-    except Exception as exc:
-        raise HTTPException(
-            status_code=404, detail='Unable to provide results') from exc
-
-@app.post("/api/metra/password_check", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def metra_data_password_check(response: Response, username:str, password:str):
->>>>>>> parent of 94cb845 (Update api.py)
-    """Used to retrieve results"""
-    try:
-        file = open(file=api_file_path + '.metra_data_tokens',
-                    mode='r',
-                    encoding='utf-8')
-        metra_tokens = json.load(file)
-<<<<<<< HEAD
-        request_input = await request.json()
-        user_input = request_input['Username'].upper()
-        if request_input['Password'] == metra_tokens[request_input['Username'].upper()]:
-            with open(metra_transactions_json_file, 'r', encoding="utf-8") as fp:
-=======
-async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
-    """Used to retrieve results"""
-    try:
-        user_input = user.upper()
-        if output_type.upper() == "JSON":
-            json_file = main_file_path_transit_data + "metra.json"
-            with open(json_file, 'r', encoding="utf-8") as fp:
->>>>>>> parent of fe0cd33 (Update api.py)
-                json_file_loaded = json.load(fp)
-            if user_input == "ALL_USERS":
-                return JSONResponse(content=jsonable_encoder(json_file_loaded))
-<<<<<<< HEAD
-            elif output_type.upper() == "CSV":
-                output_text = "User,Date,Route,RunNumber,Origin,Origin_Zone,Origin_Miles,Origin_Kilometers,Destination,Destination_Zone,Destination_Miles,Destination_Kilometers,Trip_Miles,Trip_Kilometers,Trip_Cost,Ticket_Type"
-                if user_input == "ALL_USERS":
-                    for username in json_file_loaded:
-                        for item in json_file_loaded[username]:
-                            trip_cost = f"{json_file_loaded[username][item]['Trip Cost']:.2f}"
-                            output_text = f"{output_text}\n{username},{json_file_loaded[username][item]['Date']},{json_file_loaded[username][item]['Line ID']},{json_file_loaded[username][item]['Run Number']},{json_file_loaded[username][item]['Origin']},{json_file_loaded[username][item]['Origin Station - Zone']},{json_file_loaded[username][item]['Origin Station - Mileage']},{json_file_loaded[username][item]['Origin Station - Kilometers']},{json_file_loaded[username][item]['Destination']},{json_file_loaded[username][item]['Destination Station - Zone']},{json_file_loaded[username][item]['Destination Station - Mileage']},{json_file_loaded[username][item]['Destination Station - Kilometers']},{json_file_loaded[username][item]['Track Miles']},{json_file_loaded[username][item]['Track Kilometers']},{trip_cost},{json_file_loaded[username][item]['Ticket Type']}"
-                elif user_input in json_file_loaded:
-                    for item in json_file_loaded[user_input]:
-                        trip_cost = f"{json_file_loaded[user_input][item]['Trip Cost']:.2f}"
-                        output_text = f"{output_text}\n{user_input},{json_file_loaded[user_input][item]['Date']},{json_file_loaded[user_input][item]['Line ID']},{json_file_loaded[user_input][item]['Run Number']},{json_file_loaded[user_input][item]['Origin']},{json_file_loaded[user_input][item]['Origin Station - Zone']},{json_file_loaded[user_input][item]['Origin Station - Mileage']},{json_file_loaded[user_input][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][item]['Destination']},{json_file_loaded[user_input][item]['Destination Station - Zone']},{json_file_loaded[user_input][item]['Destination Station - Mileage']},{json_file_loaded[user_input][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][item]['Track Miles']},{json_file_loaded[user_input][item]['Track Kilometers']},{trip_cost},{json_file_loaded[user_input][item]['Ticket Type']}"
-                return Response(content=output_text, media_type="text/csv", headers={
-                    "Content-Disposition": f"attachment; filename=metra-trips-{user_input}.csv"})
-=======
-        if username.upper() in metra_tokens:
-            if password == metra_tokens[username.upper()]:
-                return_text = {"Status": "Valid Username and Password"}
-                response.status_code = status.HTTP_202_ACCEPTED
-            else:
-                return_text = {"Status": "Incorrect Username or Password"}
-                response.status_code = status.HTTP_401_UNAUTHORIZED
->>>>>>> parent of 94cb845 (Update api.py)
-        else:
-            response.status_code = status.HTTP_401_UNAUTHORIZED
-=======
-            else:
-                return JSONResponse(content=jsonable_encoder(json_file_loaded[user_input]))
-        elif output_type.upper() == "CSV":
-            output_text = "User,Date,Route,RunNumber,Origin,Origin_Zone,Origin_Miles,Origin_Kilometers,Destination,Destination_Zone,Destination_Miles,Destination_Kilometers,Trip_Miles,Trip_Kilometers,Trip_Cost,Ticket_Type"
-            json_file = main_file_path_transit_data + "metra.json"
-            with open(json_file, 'r', encoding="utf-8") as fp:
-                json_file_loaded = json.load(fp)
-            if user_input == "ALL_USERS":
-                for username in json_file_loaded:
-                    for item in json_file_loaded[username]:
-                        trip_cost = f"{json_file_loaded[username][item]['Trip Cost']:.2f}"
-                        new_line = f"{username},{json_file_loaded[username][item]['Date']},{json_file_loaded[username][item]['Line ID']},{json_file_loaded[username][item]['Run Number']},{json_file_loaded[username][item]['Origin']},{json_file_loaded[username][item]['Origin Station - Zone']},{json_file_loaded[username][item]['Origin Station - Mileage']},{json_file_loaded[username][item]['Origin Station - Kilometers']},{json_file_loaded[username][item]['Destination']},{json_file_loaded[username][item]['Destination Station - Zone']},{json_file_loaded[username][item]['Destination Station - Mileage']},{json_file_loaded[username][item]['Destination Station - Kilometers']},{json_file_loaded[username][item]['Track Miles']},{json_file_loaded[username][item]['Track Kilometers']},{trip_cost},{json_file_loaded[username][item]['Ticket Type']}"
-                        output_text = f"{output_text}\n{new_line}"
-            elif user_input in json_file_loaded:
-                for item in json_file_loaded[user_input]:
-                    trip_cost = f"{json_file_loaded[user_input][item]['Trip Cost']:.2f}"
-                    new_line = f"{user_input},{json_file_loaded[user_input][item]['Date']},{json_file_loaded[user_input][item]['Line ID']},{json_file_loaded[user_input][item]['Run Number']},{json_file_loaded[user_input][item]['Origin']},{json_file_loaded[user_input][item]['Origin Station - Zone']},{json_file_loaded[user_input][item]['Origin Station - Mileage']},{json_file_loaded[user_input][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][item]['Destination']},{json_file_loaded[user_input][item]['Destination Station - Zone']},{json_file_loaded[user_input][item]['Destination Station - Mileage']},{json_file_loaded[user_input][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][item]['Track Miles']},{json_file_loaded[user_input][item]['Track Kilometers']},{trip_cost},{json_file_loaded[user_input][item]['Ticket Type']}"
-                    output_text = f"{output_text}\n{new_line}"
-            else:
-                raise HTTPException(
-                    status_code=404, detail='User Not Found')
-            return Response(content=output_text, media_type="text/csv", headers={
-                "Content-Disposition": f"attachment; filename=metra-trips-{user_input}.csv"})
->>>>>>> parent of fe0cd33 (Update api.py)
     except Exception as exc:
         raise HTTPException(
             status_code=404, detail='Unable to provide results') from exc

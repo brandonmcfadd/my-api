@@ -415,7 +415,9 @@ async def return_arrivals_for_date(agency: str, date: str = None, availability: 
             main_file_path_csv + "cta/") if not f.startswith(".")), key=str.lower)
         return files_available
     elif availability is True and agency == "metra":
-        return "Unavailable"
+        files_available = sorted((f for f in os.listdir(
+            main_file_path_csv + "metra/") if not f.startswith(".")), key=str.lower)
+        return files_available
     else:
         try:
             if agency == "cta":
@@ -428,7 +430,14 @@ async def return_arrivals_for_date(agency: str, date: str = None, availability: 
                         "Content-Disposition": f"attachment; filename=cta-arrivals-{date}.csv"}
                 )
             if agency == "metra":
-                return "Unavailable"
+                csv_file = main_file_path_csv + "metra/" + date + ".csv"
+                results = open(csv_file, 'r', encoding="utf-8")
+                return StreamingResponse(
+                    results,
+                    media_type="text/csv",
+                    headers={
+                        "Content-Disposition": f"attachment; filename=cta-arrivals-{date}.csv"}
+                )
             elif agency == "wmata":
                 return "Unavailable"
             else:
@@ -454,10 +463,12 @@ async def return_arrivals_for_date_month(agency: str, date: str = None, availabi
         return "Unavailable"
     elif availability is True and agency == "cta":
         files_available = sorted((f for f in os.listdir(
-            main_file_path_csv + "cta/") if not f.startswith(".")), key=str.lower)
+            main_file_path_csv_month + "cta/") if not f.startswith(".")), key=str.lower)
         return files_available
     elif availability is True and agency == "metra":
-        return "Unavailable"
+        files_available = sorted((f for f in os.listdir(
+            main_file_path_csv_month + "metra/") if not f.startswith(".")), key=str.lower)
+        return files_available
     else:
         try:
             if agency == "cta":
@@ -470,7 +481,14 @@ async def return_arrivals_for_date_month(agency: str, date: str = None, availabi
                         "Content-Disposition": f"attachment; filename=cta-arrivals-{date}.csv"}
                 )
             if agency == "metra":
-                return "Unavailable"
+                csv_file = main_file_path_csv_month + "metra/" + date + ".csv"
+                results = open(csv_file, 'r', encoding="utf-8")
+                return StreamingResponse(
+                    results,
+                    media_type="text/csv",
+                    headers={
+                        "Content-Disposition": f"attachment; filename=cta-arrivals-{date}.csv"}
+                )
             elif agency == "wmata":
                 return "Unavailable"
             else:

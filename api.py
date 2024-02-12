@@ -790,80 +790,80 @@ async def transit_data_password_check(request: Request, response: Response):
 @app.post("/api/cta/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
 async def cta_trips(request: Request, response: Response, user: str, auth_token: str, type: str):
     """Used to retrieve results"""
-    try:
-        if auth_token == api_auth_token:
-            request_input = await request.json()
-            if 'data' in request_input:
-                request_input = request_input['data']
-            elif 'body' in request_input:
-                request_input = request_input['body']
-            json_file = main_file_path_transit_data + "transit_trips.json"
-            with open(json_file, 'r', encoding="utf-8") as fp:
-                json_file_loaded = json.load(fp)
-            train_id = f"{request_input['Date']}-{request_input['Route']}-{request_input['Run Number']}"
-            username = user.upper()
-            if username in json_file_loaded:
-                if type == "add":
-                    if train_id in json_file_loaded[username]['cta']:
-                        return_text = {"Status": "Train Already Present",
-                                        "TrainDetails": json_file_loaded[username]['cta'][train_id]}
-                        response.status_code = status.HTTP_208_ALREADY_REPORTED
+    # try:
+    if auth_token == api_auth_token:
+        request_input = await request.json()
+        if 'data' in request_input:
+            request_input = request_input['data']
+        elif 'body' in request_input:
+            request_input = request_input['body']
+        json_file = main_file_path_transit_data + "transit_trips.json"
+        with open(json_file, 'r', encoding="utf-8") as fp:
+            json_file_loaded = json.load(fp)
+        train_id = f"{request_input['Date']}-{request_input['Route']}-{request_input['Run Number']}"
+        username = user.upper()
+        if username in json_file_loaded:
+            if type == "add":
+                if train_id in json_file_loaded[username]['cta']:
+                    return_text = {"Status": "Train Already Present",
+                                    "TrainDetails": json_file_loaded[username]['cta'][train_id]}
+                    response.status_code = status.HTTP_208_ALREADY_REPORTED
+                else:
+                    cta_stations_file_path = main_file_path_transit_data + "cta_stations.json"
+                    with open(cta_stations_file_path, 'r', encoding="utf-8") as fp2:
+                        cta_stations = json.load(fp2)
+                    request_input['Origin Station - Mileage'] = cta_stations[request_input['Route']
+                                                                                ][request_input['Origin']]['Miles']
+                    request_input['Origin Station - Kilometers'] = cta_stations[request_input['Route']
+                                                                                    ][request_input['Origin']]['Kilometers']
+                    request_input['Destination Station - Mileage'] = cta_stations[request_input['Route']
+                                                                                    ][request_input['Destination']]['Miles']
+                    request_input['Destination Station - Kilometers'] = cta_stations[request_input['Route']
+                                                                                        ][request_input['Destination']]['Kilometers']
+                    track_miles = round(request_input['Origin Station - Mileage'] - \
+                        request_input['Destination Station - Mileage'], 2)
+                    if track_miles < 0:
+                        track_miles = track_miles * -1
+                    track_kilometers = round(request_input['Origin Station - Kilometers'] - \
+                        request_input['Destination Station - Kilometers'], 2)
+                    if track_kilometers < 0:
+                        track_kilometers = track_kilometers * -1
+                    if (request_input['Origin'] in ["O'Hare"]):
+                        trip_cost = 5
                     else:
-                        cta_stations_file_path = main_file_path_transit_data + "cta_stations.json"
-                        with open(cta_stations_file_path, 'r', encoding="utf-8") as fp2:
-                            cta_stations = json.load(fp2)
-                        request_input['Origin Station - Mileage'] = cta_stations[request_input['Route']
-                                                                                    ][request_input['Origin']]['Miles']
-                        request_input['Origin Station - Kilometers'] = cta_stations[request_input['Route']
-                                                                                        ][request_input['Origin']]['Kilometers']
-                        request_input['Destination Station - Mileage'] = cta_stations[request_input['Route']
-                                                                                        ][request_input['Destination']]['Miles']
-                        request_input['Destination Station - Kilometers'] = cta_stations[request_input['Route']
-                                                                                            ][request_input['Destination']]['Kilometers']
-                        track_miles = round(request_input['Origin Station - Mileage'] - \
-                            request_input['Destination Station - Mileage'], 2)
-                        if track_miles < 0:
-                            track_miles = track_miles * -1
-                        track_kilometers = round(request_input['Origin Station - Kilometers'] - \
-                            request_input['Destination Station - Kilometers'], 2)
-                        if track_kilometers < 0:
-                            track_kilometers = track_kilometers * -1
-                        if (request_input['Origin'] in ["O'Hare"]):
-                            trip_cost = 5
-                        else:
-                            trip_cost = 2.5
-                        request_input['Track Miles'] = track_miles
-                        request_input['Track Kilometers'] = track_kilometers
-                        request_input['Trip Cost'] = trip_cost
-                        json_file_loaded[username]['cta'][train_id] = request_input
-                        return_text = {"Status": "Train Added",
-                                        "TrainDetails": request_input}
-                        response.status_code = status.HTTP_201_CREATED
-                elif type == "remove":
-                    if train_id in json_file_loaded[username]['cta']:
-                        train_input = json_file_loaded[username]['cta'][train_id]
-                        json_file_loaded[username]['cta'].pop(train_id, None)
-                        return_text = {"Status": "Train Removed",
-                                        "TrainDetails": train_input}
-                        response.status_code = status.HTTP_202_ACCEPTED
-                    else:
-                        return_text = {
-                            "Status": "Failed to Remove Train. Train does not exist.", "TrainID": request_input}
-                        response.status_code = status.HTTP_404_NOT_FOUND
-                with open(json_file, 'w', encoding="utf-8") as fp2:
-                    json.dump(json_file_loaded, fp2, indent=4,
-                                separators=(',', ': '))
-            else:
-                return_text = {
-                    "Status": "User Not Found - Unable to Proceed"}
-                response.status_code = status.HTTP_404_NOT_FOUND
-            return return_text
+                        trip_cost = 2.5
+                    request_input['Track Miles'] = track_miles
+                    request_input['Track Kilometers'] = track_kilometers
+                    request_input['Trip Cost'] = trip_cost
+                    json_file_loaded[username]['cta'][train_id] = request_input
+                    return_text = {"Status": "Train Added",
+                                    "TrainDetails": request_input}
+                    response.status_code = status.HTTP_201_CREATED
+            elif type == "remove":
+                if train_id in json_file_loaded[username]['cta']:
+                    train_input = json_file_loaded[username]['cta'][train_id]
+                    json_file_loaded[username]['cta'].pop(train_id, None)
+                    return_text = {"Status": "Train Removed",
+                                    "TrainDetails": train_input}
+                    response.status_code = status.HTTP_202_ACCEPTED
+                else:
+                    return_text = {
+                        "Status": "Failed to Remove Train. Train does not exist.", "TrainID": request_input}
+                    response.status_code = status.HTTP_404_NOT_FOUND
+            with open(json_file, 'w', encoding="utf-8") as fp2:
+                json.dump(json_file_loaded, fp2, indent=4,
+                            separators=(',', ': '))
         else:
-            raise HTTPException(
-                status_code=400, detail='Something Went Wrong')
-    except Exception as exc:
+            return_text = {
+                "Status": "User Not Found - Unable to Proceed"}
+            response.status_code = status.HTTP_404_NOT_FOUND
+        return return_text
+    else:
         raise HTTPException(
-            status_code=400, detail='Something Went Wrong') from exc
+            status_code=400, detail='Something Went Wrong')
+    # except Exception as exc:
+    #     raise HTTPException(
+    #         status_code=400, detail='Something Went Wrong') from exc
 
 
 @app.get("/api/cta/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)

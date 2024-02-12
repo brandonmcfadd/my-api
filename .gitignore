@@ -155,3 +155,7 @@ cython_debug/
 metra.json
 metra_stations.json
 dump.rdb
+.transit_data_tokens
+cta.json
+cta_stations.json
+transit_trips.json

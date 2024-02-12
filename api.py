@@ -355,15 +355,15 @@ async def return_results_for_date_wmata_v2(date: str, token: str = Depends(get_c
 @app.get("/api/transit/get_daily_results/", dependencies=[Depends(RateLimiter(times=2, seconds=1))])
 async def return_results_for_date_transit(agency: str, date: str = None, availability: bool = False, token: str = Depends(get_current_username)):
     """Used to retrieve results"""
-    if date == "today" and (agency == "cta" or agency == "metra"):
+    if date == "today" and (agency == 'cta' or agency == 'metra'):
         date = get_date("api-today")
-    elif date == "yesterday" and (agency == "cta" or agency == "metra"):
+    elif date == "yesterday" and (agency == 'cta' or agency == 'metra'):
         date = get_date("api-yesterday")
     if date == "today" and agency == "wmata":
         date = get_date("api-today-est")
     elif date == "yesterday" and agency == "wmata":
         date = get_date("api-yesterday-est")
-    if availability is True and agency == "cta":
+    if availability is True and agency == 'cta':
         files_available = sorted((f for f in os.listdir(
             main_file_path_json + "cta/") if not f.startswith(".")), key=str.lower)
         return files_available
@@ -371,17 +371,17 @@ async def return_results_for_date_transit(agency: str, date: str = None, availab
         files_available = sorted((f for f in os.listdir(
             wmata_main_file_path_json) if not f.startswith(".")), key=str.lower)
         return files_available
-    elif availability is True and agency == "metra":
+    elif availability is True and agency == 'metra':
         files_available = sorted((f for f in os.listdir(
             main_file_path_json + "metra/") if not f.startswith(".")), key=str.lower)
         return files_available
     else:
         try:
-            if agency == "cta":
+            if agency == 'cta':
                 json_file = main_file_path_json + "cta/" + date + ".json"
                 results = open(json_file, 'r', encoding="utf-8")
                 return Response(content=results.read(), media_type="application/json")
-            if agency == "metra":
+            if agency == 'metra':
                 json_file = main_file_path_json + "metra/" + date + ".json"
                 results = open(json_file, 'r', encoding="utf-8")
                 return Response(content=results.read(), media_type="application/json")
@@ -400,9 +400,9 @@ async def return_results_for_date_transit(agency: str, date: str = None, availab
 @app.get("/api/transit/get_train_arrivals_by_day/", dependencies=[Depends(RateLimiter(times=2, seconds=1))])
 async def return_arrivals_for_date(agency: str, date: str = None, availability: bool = False, token: str = Depends(get_current_username)):
     """Used to retrieve results"""
-    if date == "today" and (agency == "cta" or agency == "metra"):
+    if date == "today" and (agency == 'cta' or agency == 'metra'):
         date = get_date("api-today")
-    elif date == "yesterday" and (agency == "cta" or agency == "metra"):
+    elif date == "yesterday" and (agency == 'cta' or agency == 'metra'):
         date = get_date("api-yesterday")
     if date == "today" and agency == "wmata":
         date = get_date("api-today-est")
@@ -410,17 +410,17 @@ async def return_arrivals_for_date(agency: str, date: str = None, availability: 
         date = get_date("api-yesterday-est")
     if availability is True and agency == "wmata":
         return "Unavailable"
-    elif availability is True and agency == "cta":
+    elif availability is True and agency == 'cta':
         files_available = sorted((f for f in os.listdir(
             main_file_path_csv + "cta/") if not f.startswith(".")), key=str.lower)
         return files_available
-    elif availability is True and agency == "metra":
+    elif availability is True and agency == 'metra':
         files_available = sorted((f for f in os.listdir(
             main_file_path_csv + "metra/") if not f.startswith(".")), key=str.lower)
         return files_available
     else:
         try:
-            if agency == "cta":
+            if agency == 'cta':
                 csv_file = main_file_path_csv + "cta/" + date + ".csv"
                 results = open(csv_file, 'r', encoding="utf-8")
                 return StreamingResponse(
@@ -429,7 +429,7 @@ async def return_arrivals_for_date(agency: str, date: str = None, availability: 
                     headers={
                         "Content-Disposition": f"attachment; filename=cta-arrivals-{date}.csv"}
                 )
-            if agency == "metra":
+            if agency == 'metra':
                 csv_file = main_file_path_csv + "metra/" + date + ".csv"
                 results = open(csv_file, 'r', encoding="utf-8")
                 return StreamingResponse(
@@ -451,9 +451,9 @@ async def return_arrivals_for_date(agency: str, date: str = None, availability: 
 @app.get("/api/transit/get_train_arrivals_by_month/", dependencies=[Depends(RateLimiter(times=2, seconds=1))])
 async def return_arrivals_for_date_month(agency: str, date: str = None, availability: bool = False, token: str = Depends(get_current_username)):
     """Used to retrieve results"""
-    if date == "today" and (agency == "cta" or agency == "metra"):
+    if date == "today" and (agency == 'cta' or agency == 'metra'):
         date = get_date("api-today")
-    elif date == "yesterday" and (agency == "cta" or agency == "metra"):
+    elif date == "yesterday" and (agency == 'cta' or agency == 'metra'):
         date = get_date("api-last-month")
     if date == "today" and agency == "wmata":
         date = get_date("api-today-est")
@@ -461,17 +461,17 @@ async def return_arrivals_for_date_month(agency: str, date: str = None, availabi
         date = get_date("api-last-month-est")
     if availability is True and agency == "wmata":
         return "Unavailable"
-    elif availability is True and agency == "cta":
+    elif availability is True and agency == 'cta':
         files_available = sorted((f for f in os.listdir(
             main_file_path_csv_month + "cta/") if not f.startswith(".")), key=str.lower)
         return files_available
-    elif availability is True and agency == "metra":
+    elif availability is True and agency == 'metra':
         files_available = sorted((f for f in os.listdir(
             main_file_path_csv_month + "metra/") if not f.startswith(".")), key=str.lower)
         return files_available
     else:
         try:
-            if agency == "cta":
+            if agency == 'cta':
                 csv_file = main_file_path_csv_month + "cta/" + date + ".csv"
                 results = open(csv_file, 'r', encoding="utf-8")
                 return StreamingResponse(
@@ -480,7 +480,7 @@ async def return_arrivals_for_date_month(agency: str, date: str = None, availabi
                     headers={
                         "Content-Disposition": f"attachment; filename=cta-arrivals-{date}.csv"}
                 )
-            if agency == "metra":
+            if agency == 'metra':
                 csv_file = main_file_path_csv_month + "metra/" + date + ".csv"
                 results = open(csv_file, 'r', encoding="utf-8")
                 return StreamingResponse(
@@ -648,16 +648,16 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
                 request_input = request_input['data']
             elif 'body' in request_input:
                 request_input = request_input['body']
-            json_file = main_file_path_transit_data + "metra.json"
+            json_file = main_file_path_transit_data + "transit_trips.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
             train_id = f"{request_input['Date']}-{request_input['Line ID']}-{request_input['Run Number']}"
             username = user.upper()
             if username in json_file_loaded:
                 if type == "add":
-                    if train_id in json_file_loaded[username]:
+                    if train_id in json_file_loaded[username]['metra']:
                         return_text = {"Status": "Train Already Present",
-                                        "TrainDetails": json_file_loaded[username][train_id]}
+                                        "TrainDetails": json_file_loaded[username]['metra'][train_id]}
                         response.status_code = status.HTTP_208_ALREADY_REPORTED
                     else:
                         metra_stations_file_path = main_file_path_transit_data + "metra_stations.json"
@@ -692,14 +692,14 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
                         request_input['Track Miles'] = track_miles
                         request_input['Track Kilometers'] = track_kilometers
                         request_input['Trip Cost'] = trip_cost
-                        json_file_loaded[username][train_id] = request_input
+                        json_file_loaded[username]['metra'][train_id] = request_input
                         return_text = {"Status": "Train Added",
                                         "TrainDetails": request_input}
                         response.status_code = status.HTTP_201_CREATED
                 elif type == "remove":
-                    if train_id in json_file_loaded[username]:
-                        train_input = json_file_loaded[username][train_id]
-                        json_file_loaded[username].pop(train_id, None)
+                    if train_id in json_file_loaded[username]['metra']:
+                        train_input = json_file_loaded[username]['metra'][train_id]
+                        json_file_loaded[username]['metra'].pop(train_id, None)
                         return_text = {"Status": "Train Removed",
                                         "TrainDetails": train_input}
                         response.status_code = status.HTTP_202_ACCEPTED
@@ -724,12 +724,12 @@ async def metra_trips(request: Request, response: Response, user: str, auth_toke
 
 
 @app.get("/api/metra/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def get_metra_trips(request: Request, response: Response, user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
+async def get_metra_trips(user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
         user_input = user.upper()
         if output_type.upper() == "JSON":
-            json_file = main_file_path_transit_data + "metra.json"
+            json_file = main_file_path_transit_data + "transit_trips.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
             if user_input == "ALL_USERS":
@@ -738,19 +738,20 @@ async def get_metra_trips(request: Request, response: Response, user: str, outpu
                 return JSONResponse(content=jsonable_encoder(json_file_loaded[user_input]))
         elif output_type.upper() == "CSV":
             output_text = "User,Date,Route,RunNumber,Origin,Origin_Zone,Origin_Miles,Origin_Kilometers,Destination,Destination_Zone,Destination_Miles,Destination_Kilometers,Trip_Miles,Trip_Kilometers,Trip_Cost,Ticket_Type"
-            json_file = main_file_path_transit_data + "metra.json"
+            json_file = main_file_path_transit_data + "transit_trips.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
             if user_input == "ALL_USERS":
                 for username in json_file_loaded:
-                    for item in json_file_loaded[username]:
-                        trip_cost = f"{json_file_loaded[username][item]['Trip Cost']:.2f}"
-                        new_line = f"{username},{json_file_loaded[username][item]['Date']},{json_file_loaded[username][item]['Line ID']},{json_file_loaded[username][item]['Run Number']},{json_file_loaded[username][item]['Origin']},{json_file_loaded[username][item]['Origin Station - Zone']},{json_file_loaded[username][item]['Origin Station - Mileage']},{json_file_loaded[username][item]['Origin Station - Kilometers']},{json_file_loaded[username][item]['Destination']},{json_file_loaded[username][item]['Destination Station - Zone']},{json_file_loaded[username][item]['Destination Station - Mileage']},{json_file_loaded[username][item]['Destination Station - Kilometers']},{json_file_loaded[username][item]['Track Miles']},{json_file_loaded[username][item]['Track Kilometers']},{trip_cost},{json_file_loaded[username][item]['Ticket Type']}"
+                    for item in json_file_loaded[username]['metra']:
+                        print(item)
+                        trip_cost = f"{json_file_loaded[username]['metra'][item]['Trip Cost']:.2f}"
+                        new_line = f"{username},{json_file_loaded[username]['metra'][item]['Date']},{json_file_loaded[username]['metra'][item]['Line ID']},{json_file_loaded[username]['metra'][item]['Run Number']},{json_file_loaded[username]['metra'][item]['Origin']},{json_file_loaded[username]['metra'][item]['Origin Station - Zone']},{json_file_loaded[username]['metra'][item]['Origin Station - Mileage']},{json_file_loaded[username]['metra'][item]['Origin Station - Kilometers']},{json_file_loaded[username]['metra'][item]['Destination']},{json_file_loaded[username]['metra'][item]['Destination Station - Zone']},{json_file_loaded[username]['metra'][item]['Destination Station - Mileage']},{json_file_loaded[username]['metra'][item]['Destination Station - Kilometers']},{json_file_loaded[username]['metra'][item]['Track Miles']},{json_file_loaded[username]['metra'][item]['Track Kilometers']},{trip_cost},{json_file_loaded[username]['metra'][item]['Ticket Type']}"
                         output_text = f"{output_text}\n{new_line}"
             elif user_input in json_file_loaded:
-                for item in json_file_loaded[user_input]:
-                    trip_cost = f"{json_file_loaded[user_input][item]['Trip Cost']:.2f}"
-                    new_line = f"{user_input},{json_file_loaded[user_input][item]['Date']},{json_file_loaded[user_input][item]['Line ID']},{json_file_loaded[user_input][item]['Run Number']},{json_file_loaded[user_input][item]['Origin']},{json_file_loaded[user_input][item]['Origin Station - Zone']},{json_file_loaded[user_input][item]['Origin Station - Mileage']},{json_file_loaded[user_input][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][item]['Destination']},{json_file_loaded[user_input][item]['Destination Station - Zone']},{json_file_loaded[user_input][item]['Destination Station - Mileage']},{json_file_loaded[user_input][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][item]['Track Miles']},{json_file_loaded[user_input][item]['Track Kilometers']},{trip_cost},{json_file_loaded[user_input][item]['Ticket Type']}"
+                for item in json_file_loaded[user_input]['metra']:
+                    trip_cost = f"{json_file_loaded[user_input]['metra'][item]['Trip Cost']:.2f}"
+                    new_line = f"{user_input},{json_file_loaded[user_input]['metra'][item]['Date']},{json_file_loaded[user_input]['metra'][item]['Line ID']},{json_file_loaded[user_input]['metra'][item]['Run Number']},{json_file_loaded[user_input]['metra'][item]['Origin']},{json_file_loaded[user_input]['metra'][item]['Origin Station - Zone']},{json_file_loaded[user_input]['metra'][item]['Origin Station - Mileage']},{json_file_loaded[user_input]['metra'][item]['Origin Station - Kilometers']},{json_file_loaded[user_input]['metra'][item]['Destination']},{json_file_loaded[user_input]['metra'][item]['Destination Station - Zone']},{json_file_loaded[user_input]['metra'][item]['Destination Station - Mileage']},{json_file_loaded[user_input]['metra'][item]['Destination Station - Kilometers']},{json_file_loaded[user_input]['metra'][item]['Track Miles']},{json_file_loaded[user_input]['metra'][item]['Track Kilometers']},{trip_cost},{json_file_loaded[user_input]['metra'][item]['Ticket Type']}"
                     output_text = f"{output_text}\n{new_line}"
             else:
                 raise HTTPException(
@@ -761,17 +762,17 @@ async def get_metra_trips(request: Request, response: Response, user: str, outpu
         raise HTTPException(
             status_code=404, detail='Unable to provide results') from exc
 
-@app.post("/api/metra/password_check", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def metra_data_password_check(request: Request, response: Response):
+@app.post("/api/password_check", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+async def transit_data_password_check(request: Request, response: Response):
     """Used to retrieve results"""
     try:
-        file = open(file=api_file_path + '.metra_data_tokens',
+        file = open(file=api_file_path + '.transit_data_tokens',
                 mode='r',
                 encoding='utf-8')
-        metra_tokens = json.load(file)
+        transit_tokens = json.load(file)
         request_input = await request.json()
-        if request_input['Username'].upper() in metra_tokens:
-            if request_input['Password'] == metra_tokens[request_input['Username'].upper()]:
+        if request_input['Username'].upper() in transit_tokens:
+            if request_input['Password'] == transit_tokens[request_input['Username'].upper()]:
                 return_text = {"Status": "Valid Username and Password"}
                 response.status_code = status.HTTP_202_ACCEPTED
             else:
@@ -784,3 +785,121 @@ async def metra_data_password_check(request: Request, response: Response):
     except Exception as exc:
         raise HTTPException(
             status_code=400, detail='Something Went Wrong') from exc
+
+
+@app.post("/api/cta/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+async def cta_trips(request: Request, response: Response, user: str, auth_token: str, type: str):
+    """Used to retrieve results"""
+    try:
+        if auth_token == api_auth_token:
+            request_input = await request.json()
+            if 'data' in request_input:
+                request_input = request_input['data']
+            elif 'body' in request_input:
+                request_input = request_input['body']
+            json_file = main_file_path_transit_data + "transit_trips.json"
+            with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+            train_id = f"{request_input['Date']}-{request_input['Route']}-{request_input['Run Number']}"
+            username = user.upper()
+            if username in json_file_loaded:
+                if type == "add":
+                    if train_id in json_file_loaded[username]['cta']:
+                        return_text = {"Status": "Train Already Present",
+                                        "TrainDetails": json_file_loaded[username]['cta'][train_id]}
+                        response.status_code = status.HTTP_208_ALREADY_REPORTED
+                    else:
+                        cta_stations_file_path = main_file_path_transit_data + "cta_stations.json"
+                        with open(cta_stations_file_path, 'r', encoding="utf-8") as fp2:
+                            cta_stations = json.load(fp2)
+                        request_input['Origin Station - Mileage'] = cta_stations[request_input['Route']
+                                                                                    ][request_input['Origin']]['Miles']
+                        request_input['Origin Station - Kilometers'] = cta_stations[request_input['Route']
+                                                                                        ][request_input['Origin']]['Kilometers']
+                        request_input['Destination Station - Mileage'] = cta_stations[request_input['Route']
+                                                                                        ][request_input['Destination']]['Miles']
+                        request_input['Destination Station - Kilometers'] = cta_stations[request_input['Route']
+                                                                                            ][request_input['Destination']]['Kilometers']
+                        track_miles = round(request_input['Origin Station - Mileage'] - \
+                            request_input['Destination Station - Mileage'], 2)
+                        if track_miles < 0:
+                            track_miles = track_miles * -1
+                        track_kilometers = round(request_input['Origin Station - Kilometers'] - \
+                            request_input['Destination Station - Kilometers'], 2)
+                        if track_kilometers < 0:
+                            track_kilometers = track_kilometers * -1
+                        if (request_input['Origin'] in ["O'Hare"]):
+                            trip_cost = 5
+                        else:
+                            trip_cost = 2.5
+                        request_input['Track Miles'] = track_miles
+                        request_input['Track Kilometers'] = track_kilometers
+                        request_input['Trip Cost'] = trip_cost
+                        json_file_loaded[username]['cta'][train_id] = request_input
+                        return_text = {"Status": "Train Added",
+                                        "TrainDetails": request_input}
+                        response.status_code = status.HTTP_201_CREATED
+                elif type == "remove":
+                    if train_id in json_file_loaded[username]['cta']:
+                        train_input = json_file_loaded[username]['cta'][train_id]
+                        json_file_loaded[username]['cta'].pop(train_id, None)
+                        return_text = {"Status": "Train Removed",
+                                        "TrainDetails": train_input}
+                        response.status_code = status.HTTP_202_ACCEPTED
+                    else:
+                        return_text = {
+                            "Status": "Failed to Remove Train. Train does not exist.", "TrainID": request_input}
+                        response.status_code = status.HTTP_404_NOT_FOUND
+                with open(json_file, 'w', encoding="utf-8") as fp2:
+                    json.dump(json_file_loaded, fp2, indent=4,
+                                separators=(',', ': '))
+            else:
+                return_text = {
+                    "Status": "User Not Found - Unable to Proceed"}
+                response.status_code = status.HTTP_404_NOT_FOUND
+            return return_text
+        else:
+            raise HTTPException(
+                status_code=400, detail='Something Went Wrong')
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400, detail='Something Went Wrong') from exc
+
+
+@app.get("/api/cta/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+async def get_cta_trips(user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
+    """Used to retrieve results"""
+    try:
+        user_input = user.upper()
+        if output_type.upper() == "JSON":
+            json_file = main_file_path_transit_data + "transit_trips.json"
+            with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+            if user_input == "ALL_USERS":
+                return JSONResponse(content=jsonable_encoder(json_file_loaded))
+            else:
+                return JSONResponse(content=jsonable_encoder(json_file_loaded[user_input]['cta']))
+        elif output_type.upper() == "CSV":
+            output_text = "User,Date,Route,RunNumber,Origin,Origin_Miles,Origin_Kilometers,Destination,Destination_Miles,Destination_Kilometers,Trip_Miles,Trip_Kilometers,Trip_Cost"
+            json_file = main_file_path_transit_data + "transit_trips.json"
+            with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+            if user_input == "ALL_USERS":
+                for username in json_file_loaded:
+                    for item in json_file_loaded[username]['cta']:
+                        trip_cost = f"{json_file_loaded[username]['cta'][item]['Trip Cost']:.2f}"
+                        new_line = f"{username},{json_file_loaded[username]['cta'][item]['Date']},{json_file_loaded[username]['cta'][item]['Route']},{json_file_loaded[username]['cta'][item]['Run Number']},{json_file_loaded[username]['cta'][item]['Origin']},{json_file_loaded[username]['cta'][item]['Origin Station - Mileage']},{json_file_loaded[username]['cta'][item]['Origin Station - Kilometers']},{json_file_loaded[username]['cta'][item]['Destination']},{json_file_loaded[username]['cta'][item]['Destination Station - Mileage']},{json_file_loaded[username]['cta'][item]['Destination Station - Kilometers']},{json_file_loaded[username]['cta'][item]['Track Miles']},{json_file_loaded[username]['cta'][item]['Track Kilometers']},{trip_cost}"
+                        output_text = f"{output_text}\n{new_line}"
+            elif user_input in json_file_loaded:
+                for item in json_file_loaded[user_input]['cta']:
+                    trip_cost = f"{json_file_loaded[user_input]['cta'][item]['Trip Cost']:.2f}"
+                    new_line = f"{user_input},{json_file_loaded[user_input]['cta'][item]['Date']},{json_file_loaded[user_input]['cta'][item]['Route']},{json_file_loaded[user_input]['cta'][item]['Run Number']},{json_file_loaded[user_input]['cta'][item]['Origin']},{json_file_loaded[user_input]['cta'][item]['Origin Station - Mileage']},{json_file_loaded[user_input]['cta'][item]['Origin Station - Kilometers']},{json_file_loaded[user_input]['cta'][item]['Destination']},{json_file_loaded[user_input]['cta'][item]['Destination Station - Mileage']},{json_file_loaded[user_input]['cta'][item]['Destination Station - Kilometers']},{json_file_loaded[user_input]['cta'][item]['Track Miles']},{json_file_loaded[user_input]['cta'][item]['Track Kilometers']},{trip_cost}"
+                    output_text = f"{output_text}\n{new_line}"
+            else:
+                raise HTTPException(
+                    status_code=401, detail='User Not Found')
+            return Response(content=output_text, media_type="text/csv", headers={
+                "Content-Disposition": f"attachment; filename=cta-trips-{user_input}.csv"})
+    except Exception as exc:
+        raise HTTPException(
+            status_code=404, detail='Unable to provide results') from exc

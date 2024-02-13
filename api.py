@@ -701,6 +701,7 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
                         request_input['Trip Cost'] = trip_cost
                         json_file_loaded[username][agency][train_id] = request_input
                         return_text = {"Status": "Train Added",
+                                       "Username": username,
                                         "TrainDetails": request_input}
                         response.status_code = status.HTTP_201_CREATED
                 elif type == "remove":

@@ -825,7 +825,7 @@ async def transit_data_new_user(auth_token: str, request: Request, response: Res
             username = request_input['Username'].upper()
             password = request_input['Password']
             transit_tokens[username] = password
-            json_file_loaded[username] = {"metra":{},"cta":{},"amtrak":{}}
+            json_file_loaded[username] = {}
             return_text = {"Status":"User Created","Username":username,"Password":password}
             response.status_code = status.HTTP_202_ACCEPTED
             with open(api_file_path + '.transit_data_tokens', 'w', encoding="utf-8") as fp2:

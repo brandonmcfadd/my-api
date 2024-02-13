@@ -732,48 +732,48 @@ async def transit_trips(request: Request, response: Response, user: str, auth_to
 @app.get("/api/transit/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
 async def get_transit_tracker_trips(user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
     """Used to retrieve results"""
-    try:
-        user_input = user.upper()
-        if output_type.upper() == "JSON":
-            json_file = main_file_path_transit_data + "transit_trips.json"
-            with open(json_file, 'r', encoding="utf-8") as fp:
-                json_file_loaded = json.load(fp)
-            if user_input == "ALL_USERS":
-                return JSONResponse(content=jsonable_encoder(json_file_loaded))
-            else:
-                return JSONResponse(content=jsonable_encoder(json_file_loaded[user_input]))
-        elif output_type.upper() == "CSV":
-            output_text = "User,Date,Agency,Route,RunNumber,Origin,Origin_Zone,Origin_Miles,Origin_Kilometers,Destination,Destination_Zone,Destination_Miles,Destination_Kilometers,Trip_Miles,Trip_Kilometers,Trip_Cost,Ticket_Type"
-            json_file = main_file_path_transit_data + "transit_trips.json"
-            with open(json_file, 'r', encoding="utf-8") as fp:
-                json_file_loaded = json.load(fp)
-            if user_input == "ALL_USERS":
-                for username in json_file_loaded:
-                    for agency_trip in json_file_loaded[username]:
-                        for item in json_file_loaded[username][agency_trip]:
-                            trip_cost = f"{json_file_loaded[username][agency_trip][item]['Trip Cost']:.2f}"
-                            if agency_trip == 'metra':
-                                new_line = f"{username},{json_file_loaded[username][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[username][agency_trip][item]['Route']},{json_file_loaded[username][agency_trip][item]['Run Number']},{json_file_loaded[username][agency_trip][item]['Origin']},{json_file_loaded[username][agency_trip][item]['Origin Station - Zone']},{json_file_loaded[username][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Destination']},{json_file_loaded[username][agency_trip][item]['Destination Station - Zone']},{json_file_loaded[username][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Track Miles']},{json_file_loaded[username][agency_trip][item]['Track Kilometers']},{trip_cost},{json_file_loaded[username][agency_trip][item]['Ticket Type']}"
-                            elif agency_trip == 'cta':
-                                new_line = f"{username},{json_file_loaded[username][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[username][agency_trip][item]['Route']},{json_file_loaded[username][agency_trip][item]['Run Number']},{json_file_loaded[username][agency_trip][item]['Origin']},,{json_file_loaded[username][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Destination']},,{json_file_loaded[username][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Track Miles']},{json_file_loaded[username][agency_trip][item]['Track Kilometers']},"
-                            output_text = f"{output_text}\n{new_line}"
-            elif user_input in json_file_loaded:
-                for agency_trip in json_file_loaded[user_input]:
-                    for item in json_file_loaded[user_input][agency_trip]:
-                        trip_cost = f"{json_file_loaded[user_input][agency_trip][item]['Trip Cost']:.2f}"
+    # try:
+    user_input = user.upper()
+    if output_type.upper() == "JSON":
+        json_file = main_file_path_transit_data + "transit_trips.json"
+        with open(json_file, 'r', encoding="utf-8") as fp:
+            json_file_loaded = json.load(fp)
+        if user_input == "ALL_USERS":
+            return JSONResponse(content=jsonable_encoder(json_file_loaded))
+        else:
+            return JSONResponse(content=jsonable_encoder(json_file_loaded[user_input]))
+    elif output_type.upper() == "CSV":
+        output_text = "User,Date,Agency,Route,RunNumber,Origin,Origin_Zone,Origin_Miles,Origin_Kilometers,Destination,Destination_Zone,Destination_Miles,Destination_Kilometers,Trip_Miles,Trip_Kilometers,Trip_Cost,Ticket_Type"
+        json_file = main_file_path_transit_data + "transit_trips.json"
+        with open(json_file, 'r', encoding="utf-8") as fp:
+            json_file_loaded = json.load(fp)
+        if user_input == "ALL_USERS":
+            for username in json_file_loaded:
+                for agency_trip in json_file_loaded[username]:
+                    for item in json_file_loaded[username][agency_trip]:
+                        trip_cost = f"{json_file_loaded[username][agency_trip][item]['Trip Cost']:.2f}"
                         if agency_trip == 'metra':
-                            new_line = f"{user_input},{json_file_loaded[user_input][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[user_input][agency_trip][item]['Route']},{json_file_loaded[user_input][agency_trip][item]['Run Number']},{json_file_loaded[user_input][agency_trip][item]['Origin']},,{json_file_loaded[user_input][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Destination']},,{json_file_loaded[user_input][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Track Miles']},{json_file_loaded[user_input][agency_trip][item]['Track Kilometers']},{trip_cost},{json_file_loaded[user_input][agency_trip][item]['Ticket Type']}"
+                            new_line = f"{username},{json_file_loaded[username][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[username][agency_trip][item]['Route']},{json_file_loaded[username][agency_trip][item]['Run Number']},{json_file_loaded[username][agency_trip][item]['Origin']},{json_file_loaded[username][agency_trip][item]['Origin Station - Zone']},{json_file_loaded[username][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Destination']},{json_file_loaded[username][agency_trip][item]['Destination Station - Zone']},{json_file_loaded[username][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Track Miles']},{json_file_loaded[username][agency_trip][item]['Track Kilometers']},{trip_cost},{json_file_loaded[username][agency_trip][item]['Ticket Type']}"
                         elif agency_trip == 'cta':
-                            new_line = f"{user_input},{json_file_loaded[user_input][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[user_input][agency_trip][item]['Route']},{json_file_loaded[user_input][agency_trip][item]['Run Number']},{json_file_loaded[user_input][agency_trip][item]['Origin']},,{json_file_loaded[user_input][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Destination']},,{json_file_loaded[user_input][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Track Miles']},{json_file_loaded[user_input][agency_trip][item]['Track Kilometers']},{trip_cost},"
+                            new_line = f"{username},{json_file_loaded[username][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[username][agency_trip][item]['Route']},{json_file_loaded[username][agency_trip][item]['Run Number']},{json_file_loaded[username][agency_trip][item]['Origin']},,{json_file_loaded[username][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Destination']},,{json_file_loaded[username][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Track Miles']},{json_file_loaded[username][agency_trip][item]['Track Kilometers']},"
                         output_text = f"{output_text}\n{new_line}"
-            else:
-                raise HTTPException(
-                    status_code=401, detail='User Not Found')
-            return Response(content=output_text, media_type="text/csv", headers={
-                "Content-Disposition": f"attachment; filename=transit-trips-{user_input}.csv"})
-    except Exception as exc:
-        raise HTTPException(
-            status_code=404, detail='Unable to provide results') from exc
+        elif user_input in json_file_loaded:
+            for agency_trip in json_file_loaded[user_input]:
+                for item in json_file_loaded[user_input][agency_trip]:
+                    trip_cost = f"{json_file_loaded[user_input][agency_trip][item]['Trip Cost']:.2f}"
+                    if agency_trip == 'metra':
+                        new_line = f"{user_input},{json_file_loaded[user_input][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[user_input][agency_trip][item]['Route']},{json_file_loaded[user_input][agency_trip][item]['Run Number']},{json_file_loaded[user_input][agency_trip][item]['Origin']},,{json_file_loaded[user_input][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Destination']},,{json_file_loaded[user_input][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Track Miles']},{json_file_loaded[user_input][agency_trip][item]['Track Kilometers']},{trip_cost},{json_file_loaded[user_input][agency_trip][item]['Ticket Type']}"
+                    elif agency_trip == 'cta':
+                        new_line = f"{user_input},{json_file_loaded[user_input][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[user_input][agency_trip][item]['Route']},{json_file_loaded[user_input][agency_trip][item]['Run Number']},{json_file_loaded[user_input][agency_trip][item]['Origin']},,{json_file_loaded[user_input][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Destination']},,{json_file_loaded[user_input][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Track Miles']},{json_file_loaded[user_input][agency_trip][item]['Track Kilometers']},{trip_cost},"
+                    output_text = f"{output_text}\n{new_line}"
+        else:
+            raise HTTPException(
+                status_code=401, detail='User Not Found')
+        return Response(content=output_text, media_type="text/csv", headers={
+            "Content-Disposition": f"attachment; filename=transit-trips-{user_input}.csv"})
+    # except Exception as exc:
+    #     raise HTTPException(
+    #         status_code=404, detail='Unable to provide results') from exc
 
 
 @app.post("/api/password_check", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)

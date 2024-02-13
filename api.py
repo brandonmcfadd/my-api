@@ -163,7 +163,6 @@ async def check_for_header(request: Request, call_next):
     if environment != "DEV":
         try:
             proxy_header = request.headers.get('x-api-proxy')
-            print(proxy_header)
             if proxy_header == api_auth_key:
                 start_time = time.time()
                 response = await call_next(request)
@@ -640,7 +639,7 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
 
 
 @app.post("/api/transit/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def transit_trips(request: Request, response: Response, user: str, auth_token: str, type: str, agency: str):
+async def transit_tracker_trips(request: Request, response: Response, user: str, auth_token: str, type: str, agency: str):
     """Used to retrieve results"""
     try:
         if auth_token == api_auth_token:
@@ -731,11 +730,11 @@ async def transit_trips(request: Request, response: Response, user: str, auth_to
 
 
 @app.get("/api/transit/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def get_transit_tracker_trips(user: str, output_type: str = "JSON", token: str = Depends(get_current_username)):
+async def get_transit_tracker_trips(user: str, auth_token: str, output_type: str = "JSON"):
     """Used to retrieve results"""
     # try:
     user_input = user.upper()
-    if output_type.upper() == "JSON":
+    if output_type.upper() == "JSON" and auth_token == api_auth_token:
         json_file = main_file_path_transit_data + "transit_trips.json"
         with open(json_file, 'r', encoding="utf-8") as fp:
             json_file_loaded = json.load(fp)
@@ -743,7 +742,7 @@ async def get_transit_tracker_trips(user: str, output_type: str = "JSON", token:
             return JSONResponse(content=jsonable_encoder(json_file_loaded))
         else:
             return JSONResponse(content=jsonable_encoder(json_file_loaded[user_input]))
-    elif output_type.upper() == "CSV":
+    elif output_type.upper() == "CSV" and auth_token == api_auth_token:
         output_text = "User,Date,Agency,Route,RunNumber,Origin,Origin_Zone,Origin_Miles,Origin_Kilometers,Destination,Destination_Zone,Destination_Miles,Destination_Kilometers,Trip_Miles,Trip_Kilometers,Trip_Cost,Ticket_Type"
         json_file = main_file_path_transit_data + "transit_trips.json"
         with open(json_file, 'r', encoding="utf-8") as fp:

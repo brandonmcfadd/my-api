@@ -163,6 +163,7 @@ async def check_for_header(request: Request, call_next):
     if environment != "DEV":
         try:
             proxy_header = request.headers.get('x-api-proxy')
+            print(proxy_header)
             if proxy_header == api_auth_key:
                 start_time = time.time()
                 response = await call_next(request)

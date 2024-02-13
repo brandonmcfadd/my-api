@@ -630,6 +630,8 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
             train_id = f"{request_input['Date']}-{request_input['Route']}-{request_input['Run Number']}"
             username = user.upper()
             if username in json_file_loaded:
+                if agency not in json_file_loaded[username]:
+                    json_file_loaded[username][agency] = {}
                 if type == "add":
                     if train_id in json_file_loaded[username][agency]:
                         return_text = {"Status": "Train Already Present",
@@ -714,7 +716,7 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
                         response.status_code = status.HTTP_404_NOT_FOUND
                 with open(json_file, 'w', encoding="utf-8") as fp2:
                     json.dump(json_file_loaded, fp2, indent=4,
-                                separators=(',', ': '))
+                                separators=(',', ': '), sort_keys=True)
             else:
                 return_text = {
                     "Status": "User Not Found - Unable to Proceed"}

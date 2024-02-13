@@ -692,10 +692,12 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
                                 trip_cost = 5
                             else:
                                 trip_cost = 2.5
+                        elif agency == 'amtrak':
+                            trip_cost = 0
                         request_input['Track Miles'] = track_miles
                         request_input['Track Kilometers'] = track_kilometers
                         request_input['Trip Cost'] = trip_cost
-                        json_file_loaded[username]['metra'][train_id] = request_input
+                        json_file_loaded[username][agency][train_id] = request_input
                         return_text = {"Status": "Train Added",
                                         "TrainDetails": request_input}
                         response.status_code = status.HTTP_201_CREATED
@@ -751,7 +753,7 @@ async def get_transit_tracker_trips(user: str, auth_token: str, output_type: str
                             trip_cost = f"{json_file_loaded[username][agency_trip][item]['Trip Cost']:.2f}"
                             if agency_trip == 'metra':
                                 new_line = f"{username},{json_file_loaded[username][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[username][agency_trip][item]['Route']},{json_file_loaded[username][agency_trip][item]['Run Number']},{json_file_loaded[username][agency_trip][item]['Origin']},{json_file_loaded[username][agency_trip][item]['Origin Station - Zone']},{json_file_loaded[username][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Destination']},{json_file_loaded[username][agency_trip][item]['Destination Station - Zone']},{json_file_loaded[username][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Track Miles']},{json_file_loaded[username][agency_trip][item]['Track Kilometers']},{trip_cost},{json_file_loaded[username][agency_trip][item]['Ticket Type']}"
-                            elif agency_trip == 'cta':
+                            elif agency_trip in ['cta','amtrak']:
                                 new_line = f"{username},{json_file_loaded[username][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[username][agency_trip][item]['Route']},{json_file_loaded[username][agency_trip][item]['Run Number']},{json_file_loaded[username][agency_trip][item]['Origin']},,{json_file_loaded[username][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Destination']},,{json_file_loaded[username][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Track Miles']},{json_file_loaded[username][agency_trip][item]['Track Kilometers']},"
                             output_text = f"{output_text}\n{new_line}"
             elif user_input in json_file_loaded:
@@ -760,7 +762,7 @@ async def get_transit_tracker_trips(user: str, auth_token: str, output_type: str
                         trip_cost = f"{json_file_loaded[user_input][agency_trip][item]['Trip Cost']:.2f}"
                         if agency_trip == 'metra':
                             new_line = f"{user_input},{json_file_loaded[user_input][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[user_input][agency_trip][item]['Route']},{json_file_loaded[user_input][agency_trip][item]['Run Number']},{json_file_loaded[user_input][agency_trip][item]['Origin']},,{json_file_loaded[user_input][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Destination']},,{json_file_loaded[user_input][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Track Miles']},{json_file_loaded[user_input][agency_trip][item]['Track Kilometers']},{trip_cost},{json_file_loaded[user_input][agency_trip][item]['Ticket Type']}"
-                        elif agency_trip == 'cta':
+                        elif agency_trip in ['cta','amtrak']:
                             new_line = f"{user_input},{json_file_loaded[user_input][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[user_input][agency_trip][item]['Route']},{json_file_loaded[user_input][agency_trip][item]['Run Number']},{json_file_loaded[user_input][agency_trip][item]['Origin']},,{json_file_loaded[user_input][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Destination']},,{json_file_loaded[user_input][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Track Miles']},{json_file_loaded[user_input][agency_trip][item]['Track Kilometers']},{trip_cost},"
                         output_text = f"{output_text}\n{new_line}"
             else:

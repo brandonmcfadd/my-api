@@ -796,3 +796,41 @@ async def transit_data_password_check(request: Request, response: Response):
     except Exception as exc:
         raise HTTPException(
             status_code=400, detail='Something Went Wrong') from exc
+
+
+@app.post("/api/transit/new-user", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+async def transit_data_new_user(auth_token: str, request: Request, response: Response):
+    """Used to retrieve results"""
+    try:
+        file = open(file=api_file_path + '.transit_data_tokens',
+                    mode='r',
+                    encoding='utf-8')
+        transit_tokens = json.load(file)
+        request_input = await request.json()
+        if 'data' in request_input:
+            request_input = request_input['data']
+        elif 'body' in request_input:
+            request_input = request_input['body']
+        if request_input['Username'].upper() in transit_tokens:
+            return_text = {"Status": "User Already Exists. If you need a password change, contact Brandon :)"}
+            response.status_code = status.HTTP_208_ALREADY_REPORTED
+        else:
+            json_file = main_file_path_transit_data + "transit_trips.json"
+            with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+            username = request_input['Username'].upper()
+            password = request_input['Password']
+            transit_tokens[username] = password
+            json_file_loaded[username] = {"metra":{},"cta":{},"amtrak":{}}
+            return_text = {"Status":"User Created","Username":username,"Password":password}
+            response.status_code = status.HTTP_202_ACCEPTED
+            with open(api_file_path + '.transit_data_tokens', 'w', encoding="utf-8") as fp2:
+                    json.dump(transit_tokens, fp2, indent=4,
+                                separators=(',', ': '))
+            with open(json_file, 'w', encoding="utf-8") as fp2:
+                json.dump(json_file_loaded, fp2, indent=4,
+                            separators=(',', ': '))
+        return return_text
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400, detail='Something Went Wrong') from exc

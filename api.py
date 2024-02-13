@@ -157,30 +157,6 @@ async def startup():
     await FastAPILimiter.init(redis_value)
 
 
-@app.middleware("http")
-async def check_for_header(request: Request, call_next):
-    """makes sure the request came through the Express Proxy"""
-    if environment != "DEV":
-        try:
-            proxy_header = request.headers.get('x-api-proxy')
-            if proxy_header == api_auth_key:
-                start_time = time.time()
-                response = await call_next(request)
-                process_time = time.time() - start_time
-                response.headers["X-Process-Time"] = str(process_time)
-                return response
-            else:
-                return HTMLResponse(status_code=403, content="Missing Required Header. Are you using the right Address?")
-        except:  # pylint: disable=bare-except
-            return HTMLResponse(status_code=403, content="Missing Required Header. Are you using the right Address?")
-    else:
-        start_time = time.time()
-        response = await call_next(request)
-        process_time = time.time() - start_time
-        response.headers["X-Process-Time"] = str(process_time)
-        return response
-
-
 @app.get("/", dependencies=[Depends(RateLimiter(times=2, seconds=1))], response_class=RedirectResponse, status_code=302)
 async def read_root():
     """Tells API to Display Root"""

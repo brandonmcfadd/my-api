@@ -636,17 +636,38 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
                                         "TrainDetails": json_file_loaded[username]['metra'][train_id]}
                         response.status_code = status.HTTP_208_ALREADY_REPORTED
                     else:
+                        loop_routes = ['Brown','Orange','Pink','Purple']
+                        loop_stations = ['Clark/Lake', 'State/Lake', 'Washington/Wabash', 'Adams/Wabash', 'Harold Washington Library', 'LaSalle/Van Buren', 'Quincy', 'Washington/Wells']
                         transit_stations_file_path = main_file_path_transit_data + "transit_stations.json"
                         with open(transit_stations_file_path, 'r', encoding="utf-8") as fp2:
                             transit_stations = json.load(fp2)
-                        request_input['Origin Station - Mileage'] = transit_stations[agency][request_input['Route']
-                                                                                    ][request_input['Origin']]['Miles']
-                        request_input['Origin Station - Kilometers'] = transit_stations[agency][request_input['Route']
-                                                                                        ][request_input['Origin']]['Kilometers']
-                        request_input['Destination Station - Mileage'] = transit_stations[agency][request_input['Route']
-                                                                                        ][request_input['Destination']]['Miles']
-                        request_input['Destination Station - Kilometers'] = transit_stations[agency][request_input['Route']
-                                                                                            ][request_input['Destination']]['Kilometers']
+                        if request_input['Route'] in loop_routes and request_input['Origin'] in loop_stations:
+                            request_input['Origin Station - Mileage'] = transit_stations[agency][request_input['Route']
+                                                                                        ][request_input['Origin']]['Outbound']['Miles']
+                            request_input['Origin Station - Kilometers'] = transit_stations[agency][request_input['Route']
+                                                                                            ][request_input['Origin']]['Outbound']['Kilometers']
+                            request_input['Destination Station - Mileage'] = transit_stations[agency][request_input['Route']
+                                                                                            ][request_input['Destination']]['Outbound']['Miles']
+                            request_input['Destination Station - Kilometers'] = transit_stations[agency][request_input['Route']
+                                                                                                ][request_input['Destination']]['Outbound']['Kilometers']
+                        elif request_input['Route'] in loop_routes and request_input['Origin'] not in loop_stations:
+                            request_input['Origin Station - Mileage'] = transit_stations[agency][request_input['Route']
+                                                                                        ][request_input['Origin']]['Inbound']['Miles']
+                            request_input['Origin Station - Kilometers'] = transit_stations[agency][request_input['Route']
+                                                                                            ][request_input['Origin']]['Inbound']['Kilometers']
+                            request_input['Destination Station - Mileage'] = transit_stations[agency][request_input['Route']
+                                                                                            ][request_input['Destination']]['Inbound']['Miles']
+                            request_input['Destination Station - Kilometers'] = transit_stations[agency][request_input['Route']
+                                                                                                ][request_input['Destination']]['Inbound']['Kilometers']
+                        else:
+                            request_input['Origin Station - Mileage'] = transit_stations[agency][request_input['Route']
+                                                                                        ][request_input['Origin']]['Miles']
+                            request_input['Origin Station - Kilometers'] = transit_stations[agency][request_input['Route']
+                                                                                            ][request_input['Origin']]['Kilometers']
+                            request_input['Destination Station - Mileage'] = transit_stations[agency][request_input['Route']
+                                                                                            ][request_input['Destination']]['Miles']
+                            request_input['Destination Station - Kilometers'] = transit_stations[agency][request_input['Route']
+                                                                                                ][request_input['Destination']]['Kilometers']
                         track_miles = round(request_input['Origin Station - Mileage'] -
                                             request_input['Destination Station - Mileage'], 2)
                         if track_miles < 0:

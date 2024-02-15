@@ -709,6 +709,7 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
                         train_input = json_file_loaded[username][agency][train_id]
                         json_file_loaded[username][agency].pop(train_id, None)
                         return_text = {"Status": "Train Removed",
+                                       "Username": username,
                                         "TrainDetails": train_input}
                         response.status_code = status.HTTP_202_ACCEPTED
                     else:

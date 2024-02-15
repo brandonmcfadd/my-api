@@ -635,7 +635,7 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
                 if type == "add":
                     if train_id in json_file_loaded[username][agency]:
                         return_text = {"Status": "Train Already Present",
-                                        "TrainDetails": json_file_loaded[username]['metra'][train_id]}
+                                        "TrainDetails": json_file_loaded[username][agency][train_id]}
                         response.status_code = status.HTTP_208_ALREADY_REPORTED
                     else:
                         loop_routes = ['Brown','Orange','Pink','Purple']

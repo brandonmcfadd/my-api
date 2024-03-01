@@ -840,3 +840,14 @@ async def transit_data_new_user(auth_token: str, request: Request, response: Res
     except Exception as exc:
         raise HTTPException(
             status_code=400, detail='Something Went Wrong') from exc
+
+@app.get("/api/cta/alerts/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+async def get_cta_alerts(token: str = Depends(get_current_username)):
+    """Used to retrieve results"""
+    try:
+        json_file = main_file_path + "train_arrivals/special/cta_alerts.json"
+        results = open(json_file, 'r', encoding="utf-8")
+        return Response(content=results.read(), media_type="application/json")
+    except:  # pylint: disable=bare-except
+        endpoint = "https://brandonmcfadden.com/api/cta/alerts/get"
+        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))

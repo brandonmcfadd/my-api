@@ -574,7 +574,7 @@ async def get_amtrak_trips(token: str = Depends(get_current_username)):
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
 
 
-@app.get("/api/transit-data/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+@app.get("/api/transit-data/get", status_code=200)
 async def get_transit_trips():
     """Used to retrieve results"""
     try:
@@ -586,7 +586,7 @@ async def get_transit_trips():
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
 
 
-@app.post("/api/transit-data/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+@app.post("/api/transit-data/post", status_code=200)
 async def transit_trips(request: Request, response: Response, auth_token: str, year: str, token: str = Depends(get_current_username)):
     """Used to retrieve results"""
     try:
@@ -850,4 +850,15 @@ async def get_cta_alerts(token: str = Depends(get_current_username)):
         return Response(content=results.read(), media_type="application/json")
     except:  # pylint: disable=bare-except
         endpoint = "https://brandonmcfadden.com/api/cta/alerts/get"
+        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+
+@app.get("/api/articles/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+async def get_articles():
+    """Used to retrieve results"""
+    try:
+        json_file = api_file_path + "data/articles.json"
+        results = open(json_file, 'r', encoding="utf-8")
+        return Response(content=results.read(), media_type="application/json")
+    except:  # pylint: disable=bare-except
+        endpoint = "https://brandonmcfadden.com/api/articles/get/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))

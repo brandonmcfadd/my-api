@@ -852,7 +852,7 @@ async def get_cta_alerts(token: str = Depends(get_current_username)):
         endpoint = "https://brandonmcfadden.com/api/cta/alerts/get"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
 
-@app.get("/api/articles/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
+@app.get("/api/articles/get", status_code=200)
 async def get_articles():
     """Used to retrieve results"""
     try:
@@ -862,3 +862,31 @@ async def get_articles():
     except:  # pylint: disable=bare-except
         endpoint = "https://brandonmcfadden.com/api/articles/get/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+
+@app.post("/api/articles/post")
+async def post_articles(request: Request, response: Response, auth_token: str, year: str, token: str = Depends(get_current_username)):
+    """Used to retrieve results"""
+    try:
+        if auth_token == api_auth_token:
+            json_file = api_file_path + "data/articles.json"
+            request_body_input = await request.json()
+            with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+            if year in json_file_loaded:
+                json_file_loaded[year].insert(0, request_body_input)
+                response.status_code = status.HTTP_202_ACCEPTED
+            else:
+                json_file_loaded[year] = []
+                json_file_loaded[year].insert(0, request_body_input)
+                response.status_code = status.HTTP_201_CREATED
+            with open(json_file, 'w', encoding="utf-8") as fp2:
+                json.dump(json_file_loaded, fp2, indent=4,
+                          separators=(',', ': '))
+            results = open(json_file, 'r', encoding="utf-8")
+            return Response(content=results.read(), media_type="application/json")
+        else:
+            raise HTTPException(
+                status_code=401, detail="Auth Token not Provided")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400, detail='Something Went Wrong') from exc

@@ -578,7 +578,7 @@ async def get_amtrak_trips(token: str = Depends(get_current_username)):
 async def get_transit_trips():
     """Used to retrieve results"""
     try:
-        json_file = main_file_path_transit_data + "transit-data.json"
+        json_file = main_file_path_transit_data + "data/transit-data.json"
         results = open(json_file, 'r', encoding="utf-8")
         return Response(content=results.read(), media_type="application/json")
     except:  # pylint: disable=bare-except
@@ -591,7 +591,7 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
     """Used to retrieve results"""
     try:
         if auth_token == api_auth_token:
-            json_file = main_file_path_transit_data + "transit-data.json"
+            json_file = main_file_path_transit_data + "data/transit-data.json"
             request_body_input = await request.json()
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
@@ -617,119 +617,121 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
 @app.post("/api/transit/post", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
 async def transit_tracker_trips(request: Request, response: Response, user: str, auth_token: str, type: str, agency: str):
     """Used to retrieve results"""
-    try:
-        if auth_token == api_auth_token:
-            request_input = await request.json()
-            if 'data' in request_input:
-                request_input = request_input['data']
-            elif 'body' in request_input:
-                request_input = request_input['body']
-            json_file = main_file_path_transit_data + "transit_trips.json"
-            with open(json_file, 'r', encoding="utf-8") as fp:
-                json_file_loaded = json.load(fp)
-            train_id = f"{request_input['Date']}-{request_input['Route']}-{request_input['Run Number']}"
-            username = user.upper()
-            if username in json_file_loaded:
-                if agency not in json_file_loaded[username]:
-                    json_file_loaded[username][agency] = {}
-                if type == "add":
-                    if train_id in json_file_loaded[username][agency]:
-                        return_text = {"Status": "Train Already Present",
-                                        "TrainDetails": json_file_loaded[username][agency][train_id]}
-                        response.status_code = status.HTTP_208_ALREADY_REPORTED
+    # try:
+    if auth_token == api_auth_token:
+        request_input = await request.json()
+        if 'data' in request_input:
+            request_input = request_input['data']
+        elif 'body' in request_input:
+            request_input = request_input['body']
+        json_file = main_file_path_transit_data + "transit_trips.json"
+        with open(json_file, 'r', encoding="utf-8") as fp:
+            json_file_loaded = json.load(fp)
+        train_id = f"{request_input['Date']}-{request_input['Route']}-{request_input['Run Number']}"
+        username = user.upper()
+        if username in json_file_loaded:
+            if agency not in json_file_loaded[username]:
+                json_file_loaded[username][agency] = {}
+            if type == "add":
+                if train_id in json_file_loaded[username][agency]:
+                    return_text = {"Status": "Train Already Present",
+                                   "TrainDetails": json_file_loaded[username][agency][train_id]}
+                    response.status_code = status.HTTP_208_ALREADY_REPORTED
+                else:
+                    loop_routes = ['Brown', 'Orange', 'Pink', 'Purple']
+                    loop_stations = ['Clark/Lake', 'State/Lake', 'Washington/Wabash', 'Adams/Wabash',
+                                     'Harold Washington Library', 'LaSalle/Van Buren', 'Quincy', 'Washington/Wells']
+                    transit_stations_file_path = main_file_path_transit_data + \
+                        "data/transit_stations.json"
+                    with open(transit_stations_file_path, 'r', encoding="utf-8") as fp2:
+                        transit_stations = json.load(fp2)
+                    if request_input['Route'] in loop_routes and request_input['Origin'] in loop_stations:
+                        request_input['Origin Station - Mileage'] = transit_stations[agency][request_input['Route']
+                                                                                             ][request_input['Origin']]['Outbound']['Miles']
+                        request_input['Origin Station - Kilometers'] = transit_stations[agency][request_input['Route']
+                                                                                                ][request_input['Origin']]['Outbound']['Kilometers']
+                        request_input['Destination Station - Mileage'] = transit_stations[agency][request_input['Route']
+                                                                                                  ][request_input['Destination']]['Outbound']['Miles']
+                        request_input['Destination Station - Kilometers'] = transit_stations[agency][request_input['Route']
+                                                                                                     ][request_input['Destination']]['Outbound']['Kilometers']
+                    elif request_input['Route'] in loop_routes and request_input['Origin'] not in loop_stations:
+                        request_input['Origin Station - Mileage'] = transit_stations[agency][request_input['Route']
+                                                                                             ][request_input['Origin']]['Inbound']['Miles']
+                        request_input['Origin Station - Kilometers'] = transit_stations[agency][request_input['Route']
+                                                                                                ][request_input['Origin']]['Inbound']['Kilometers']
+                        request_input['Destination Station - Mileage'] = transit_stations[agency][request_input['Route']
+                                                                                                  ][request_input['Destination']]['Inbound']['Miles']
+                        request_input['Destination Station - Kilometers'] = transit_stations[agency][request_input['Route']
+                                                                                                     ][request_input['Destination']]['Inbound']['Kilometers']
                     else:
-                        loop_routes = ['Brown','Orange','Pink','Purple']
-                        loop_stations = ['Clark/Lake', 'State/Lake', 'Washington/Wabash', 'Adams/Wabash', 'Harold Washington Library', 'LaSalle/Van Buren', 'Quincy', 'Washington/Wells']
-                        transit_stations_file_path = main_file_path_transit_data + "transit_stations.json"
-                        with open(transit_stations_file_path, 'r', encoding="utf-8") as fp2:
-                            transit_stations = json.load(fp2)
-                        if request_input['Route'] in loop_routes and request_input['Origin'] in loop_stations:
-                            request_input['Origin Station - Mileage'] = transit_stations[agency][request_input['Route']
-                                                                                        ][request_input['Origin']]['Outbound']['Miles']
-                            request_input['Origin Station - Kilometers'] = transit_stations[agency][request_input['Route']
-                                                                                            ][request_input['Origin']]['Outbound']['Kilometers']
-                            request_input['Destination Station - Mileage'] = transit_stations[agency][request_input['Route']
-                                                                                            ][request_input['Destination']]['Outbound']['Miles']
-                            request_input['Destination Station - Kilometers'] = transit_stations[agency][request_input['Route']
-                                                                                                ][request_input['Destination']]['Outbound']['Kilometers']
-                        elif request_input['Route'] in loop_routes and request_input['Origin'] not in loop_stations:
-                            request_input['Origin Station - Mileage'] = transit_stations[agency][request_input['Route']
-                                                                                        ][request_input['Origin']]['Inbound']['Miles']
-                            request_input['Origin Station - Kilometers'] = transit_stations[agency][request_input['Route']
-                                                                                            ][request_input['Origin']]['Inbound']['Kilometers']
-                            request_input['Destination Station - Mileage'] = transit_stations[agency][request_input['Route']
-                                                                                            ][request_input['Destination']]['Inbound']['Miles']
-                            request_input['Destination Station - Kilometers'] = transit_stations[agency][request_input['Route']
-                                                                                                ][request_input['Destination']]['Inbound']['Kilometers']
+                        request_input['Origin Station - Mileage'] = transit_stations[agency][request_input['Route']
+                                                                                             ][request_input['Origin']]['Miles']
+                        request_input['Origin Station - Kilometers'] = transit_stations[agency][request_input['Route']
+                                                                                                ][request_input['Origin']]['Kilometers']
+                        request_input['Destination Station - Mileage'] = transit_stations[agency][request_input['Route']
+                                                                                                  ][request_input['Destination']]['Miles']
+                        request_input['Destination Station - Kilometers'] = transit_stations[agency][request_input['Route']
+                                                                                                     ][request_input['Destination']]['Kilometers']
+                    track_miles = round(request_input['Origin Station - Mileage'] -
+                                        request_input['Destination Station - Mileage'], 2)
+                    if track_miles < 0:
+                        track_miles = track_miles * -1
+                    track_kilometers = round(request_input['Origin Station - Kilometers'] -
+                                             request_input['Destination Station - Kilometers'], 2)
+                    if track_kilometers < 0:
+                        track_kilometers = track_kilometers * -1
+                    if agency == 'metra':
+                        request_input['Origin Station - Zone'] = transit_stations[agency][request_input['Route']
+                                                                                          ][request_input['Origin']]['Zone']
+                        request_input['Destination Station - Zone'] = transit_stations[agency][request_input['Route']
+                                                                                               ][request_input['Destination']]['Zone']
+                        if (request_input['Origin Station - Zone'] in [2, 3, 4] and request_input['Destination Station - Zone'] in [2, 3, 4]) or (request_input['Origin Station - Zone'] in [1, 2] and request_input['Destination Station - Zone'] in [1, 2]):
+                            trip_cost = 3.75
+                        elif (request_input['Origin Station - Zone'] in [1] and request_input['Destination Station - Zone'] in [3]) or (request_input['Origin Station - Zone'] in [3] and request_input['Destination Station - Zone'] in [1]):
+                            trip_cost = 5.50
+                        elif (request_input['Origin Station - Zone'] in [1] and request_input['Destination Station - Zone'] in [4]) or (request_input['Origin Station - Zone'] in [4] and request_input['Destination Station - Zone'] in [1]):
+                            trip_cost = 6.75
+                    elif agency == 'cta':
+                        if request_input['Origin'] in ["O'Hare"]:
+                            trip_cost = 5
                         else:
-                            request_input['Origin Station - Mileage'] = transit_stations[agency][request_input['Route']
-                                                                                        ][request_input['Origin']]['Miles']
-                            request_input['Origin Station - Kilometers'] = transit_stations[agency][request_input['Route']
-                                                                                            ][request_input['Origin']]['Kilometers']
-                            request_input['Destination Station - Mileage'] = transit_stations[agency][request_input['Route']
-                                                                                            ][request_input['Destination']]['Miles']
-                            request_input['Destination Station - Kilometers'] = transit_stations[agency][request_input['Route']
-                                                                                                ][request_input['Destination']]['Kilometers']
-                        track_miles = round(request_input['Origin Station - Mileage'] -
-                                            request_input['Destination Station - Mileage'], 2)
-                        if track_miles < 0:
-                            track_miles = track_miles * -1
-                        track_kilometers = round(request_input['Origin Station - Kilometers'] -
-                                                    request_input['Destination Station - Kilometers'], 2)
-                        if track_kilometers < 0:
-                            track_kilometers = track_kilometers * -1
-                        if agency == 'metra':
-                            request_input['Origin Station - Zone'] = transit_stations[agency][request_input['Route']
-                                                                                    ][request_input['Origin']]['Zone']
-                            request_input['Destination Station - Zone'] = transit_stations[agency][request_input['Route']
-                                                                                            ][request_input['Destination']]['Zone']
-                            if (request_input['Origin Station - Zone'] in [2, 3, 4] and request_input['Destination Station - Zone'] in [2, 3, 4]) or (request_input['Origin Station - Zone'] in [1, 2] and request_input['Destination Station - Zone'] in [1, 2]):
-                                trip_cost = 3.75
-                            elif (request_input['Origin Station - Zone'] in [1] and request_input['Destination Station - Zone'] in [3]) or (request_input['Origin Station - Zone'] in [3] and request_input['Destination Station - Zone'] in [1]):
-                                trip_cost = 5.50
-                            elif (request_input['Origin Station - Zone'] in [1] and request_input['Destination Station - Zone'] in [4]) or (request_input['Origin Station - Zone'] in [4] and request_input['Destination Station - Zone'] in [1]):
-                                trip_cost = 6.75
-                        elif agency == 'cta':
-                            if request_input['Origin'] in ["O'Hare"]:
-                                trip_cost = 5
-                            else:
-                                trip_cost = 2.5
-                        elif agency == 'amtrak':
-                            trip_cost = 0
-                        request_input['Track Miles'] = track_miles
-                        request_input['Track Kilometers'] = track_kilometers
-                        request_input['Trip Cost'] = trip_cost
-                        json_file_loaded[username][agency][train_id] = request_input
-                        return_text = {"Status": "Train Added",
-                                       "Username": username,
-                                        "TrainDetails": request_input}
-                        response.status_code = status.HTTP_201_CREATED
-                elif type == "remove":
-                    if train_id in json_file_loaded[username][agency]:
-                        train_input = json_file_loaded[username][agency][train_id]
-                        json_file_loaded[username][agency].pop(train_id, None)
-                        return_text = {"Status": "Train Removed",
-                                       "Username": username,
-                                        "TrainDetails": train_input}
-                        response.status_code = status.HTTP_202_ACCEPTED
-                    else:
-                        return_text = {
-                            "Status": "Failed to Remove Train. Train does not exist.", "TrainID": request_input}
-                        response.status_code = status.HTTP_404_NOT_FOUND
-                with open(json_file, 'w', encoding="utf-8") as fp2:
-                    json.dump(json_file_loaded, fp2, indent=4,
-                                separators=(',', ': '), sort_keys=True)
-            else:
-                return_text = {
-                    "Status": "User Not Found - Unable to Proceed"}
-                response.status_code = status.HTTP_404_NOT_FOUND
-            return return_text
+                            trip_cost = 2.5
+                    elif agency == 'amtrak':
+                        trip_cost = 0
+                    request_input['Track Miles'] = track_miles
+                    request_input['Track Kilometers'] = track_kilometers
+                    request_input['Trip Cost'] = trip_cost
+                    json_file_loaded[username][agency][train_id] = request_input
+                    return_text = {"Status": "Train Added",
+                                   "Username": username,
+                                   "TrainDetails": request_input}
+                    response.status_code = status.HTTP_201_CREATED
+            elif type == "remove":
+                if train_id in json_file_loaded[username][agency]:
+                    train_input = json_file_loaded[username][agency][train_id]
+                    json_file_loaded[username][agency].pop(train_id, None)
+                    return_text = {"Status": "Train Removed",
+                                   "Username": username,
+                                   "TrainDetails": train_input}
+                    response.status_code = status.HTTP_202_ACCEPTED
+                else:
+                    return_text = {
+                        "Status": "Failed to Remove Train. Train does not exist.", "TrainID": request_input}
+                    response.status_code = status.HTTP_404_NOT_FOUND
+            with open(json_file, 'w', encoding="utf-8") as fp2:
+                json.dump(json_file_loaded, fp2, indent=4,
+                          separators=(',', ': '), sort_keys=True)
         else:
-            raise HTTPException(
-                status_code=400, detail='Something Went Wrong')
-    except Exception as exc:
+            return_text = {
+                "Status": "User Not Found - Unable to Proceed"}
+            response.status_code = status.HTTP_404_NOT_FOUND
+        return return_text
+    else:
         raise HTTPException(
-            status_code=400, detail='Something Went Wrong') from exc
+            status_code=400, detail='Something Went Wrong')
+    # except Exception as exc:
+    #     raise HTTPException(
+    #         status_code=400, detail='Something Went Wrong') from exc
 
 
 @app.get("/api/transit/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
@@ -757,7 +759,7 @@ async def get_transit_tracker_trips(user: str, auth_token: str, output_type: str
                             trip_cost = f"{json_file_loaded[username][agency_trip][item]['Trip Cost']:.2f}"
                             if agency_trip == 'metra':
                                 new_line = f"{username},{json_file_loaded[username][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[username][agency_trip][item]['Route']},{json_file_loaded[username][agency_trip][item]['Run Number']},{json_file_loaded[username][agency_trip][item]['Origin']},{json_file_loaded[username][agency_trip][item]['Origin Station - Zone']},{json_file_loaded[username][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Destination']},{json_file_loaded[username][agency_trip][item]['Destination Station - Zone']},{json_file_loaded[username][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Track Miles']},{json_file_loaded[username][agency_trip][item]['Track Kilometers']},{trip_cost},{json_file_loaded[username][agency_trip][item]['Ticket Type']}"
-                            elif agency_trip in ['cta','amtrak']:
+                            elif agency_trip in ['cta', 'amtrak']:
                                 new_line = f"{username},{json_file_loaded[username][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[username][agency_trip][item]['Route']},{json_file_loaded[username][agency_trip][item]['Run Number']},{json_file_loaded[username][agency_trip][item]['Origin']},,{json_file_loaded[username][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Destination']},,{json_file_loaded[username][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[username][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[username][agency_trip][item]['Track Miles']},{json_file_loaded[username][agency_trip][item]['Track Kilometers']},"
                             output_text = f"{output_text}\n{new_line}"
             elif user_input in json_file_loaded:
@@ -766,7 +768,7 @@ async def get_transit_tracker_trips(user: str, auth_token: str, output_type: str
                         trip_cost = f"{json_file_loaded[user_input][agency_trip][item]['Trip Cost']:.2f}"
                         if agency_trip == 'metra':
                             new_line = f"{user_input},{json_file_loaded[user_input][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[user_input][agency_trip][item]['Route']},{json_file_loaded[user_input][agency_trip][item]['Run Number']},{json_file_loaded[user_input][agency_trip][item]['Origin']},,{json_file_loaded[user_input][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Destination']},,{json_file_loaded[user_input][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Track Miles']},{json_file_loaded[user_input][agency_trip][item]['Track Kilometers']},{trip_cost},{json_file_loaded[user_input][agency_trip][item]['Ticket Type']}"
-                        elif agency_trip in ['cta','amtrak']:
+                        elif agency_trip in ['cta', 'amtrak']:
                             new_line = f"{user_input},{json_file_loaded[user_input][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[user_input][agency_trip][item]['Route']},{json_file_loaded[user_input][agency_trip][item]['Run Number']},{json_file_loaded[user_input][agency_trip][item]['Origin']},,{json_file_loaded[user_input][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Destination']},,{json_file_loaded[user_input][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Track Miles']},{json_file_loaded[user_input][agency_trip][item]['Track Kilometers']},{trip_cost},"
                         output_text = f"{output_text}\n{new_line}"
             else:
@@ -818,7 +820,8 @@ async def transit_data_new_user(auth_token: str, request: Request, response: Res
         elif 'body' in request_input:
             request_input = request_input['body']
         if request_input['Username'].upper() in transit_tokens:
-            return_text = {"Status": "User Already Exists. If you need a password change, contact Brandon :)"}
+            return_text = {
+                "Status": "User Already Exists. If you need a password change, contact Brandon :)"}
             response.status_code = status.HTTP_208_ALREADY_REPORTED
         else:
             json_file = main_file_path_transit_data + "transit_trips.json"
@@ -828,18 +831,20 @@ async def transit_data_new_user(auth_token: str, request: Request, response: Res
             password = request_input['Password']
             transit_tokens[username] = password
             json_file_loaded[username] = {}
-            return_text = {"Status":"User Created","Username":username,"Password":password}
+            return_text = {"Status": "User Created",
+                           "Username": username, "Password": password}
             response.status_code = status.HTTP_202_ACCEPTED
             with open(api_file_path + '.transit_data_tokens', 'w', encoding="utf-8") as fp2:
-                    json.dump(transit_tokens, fp2, indent=4,
-                                separators=(',', ': '))
+                json.dump(transit_tokens, fp2, indent=4,
+                          separators=(',', ': '))
             with open(json_file, 'w', encoding="utf-8") as fp2:
                 json.dump(json_file_loaded, fp2, indent=4,
-                            separators=(',', ': '))
+                          separators=(',', ': '))
         return return_text
     except Exception as exc:
         raise HTTPException(
             status_code=400, detail='Something Went Wrong') from exc
+
 
 @app.get("/api/cta/alerts/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
 async def get_cta_alerts(token: str = Depends(get_current_username)):
@@ -852,6 +857,7 @@ async def get_cta_alerts(token: str = Depends(get_current_username)):
         endpoint = "https://brandonmcfadden.com/api/cta/alerts/get"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
 
+
 @app.get("/api/articles/get", status_code=200)
 async def get_articles():
     """Used to retrieve results"""
@@ -862,6 +868,7 @@ async def get_articles():
     except:  # pylint: disable=bare-except
         endpoint = "https://brandonmcfadden.com/api/articles/get/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+
 
 @app.post("/api/articles/post")
 async def post_articles(request: Request, response: Response, auth_token: str, year: str, token: str = Depends(get_current_username)):

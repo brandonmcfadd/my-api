@@ -578,7 +578,7 @@ async def get_amtrak_trips(token: str = Depends(get_current_username)):
 async def get_transit_trips():
     """Used to retrieve results"""
     try:
-        json_file = main_file_path_transit_data + "data/transit-data.json"
+        json_file = main_file_path_transit_data + "transit-data.json"
         results = open(json_file, 'r', encoding="utf-8")
         return Response(content=results.read(), media_type="application/json")
     except:  # pylint: disable=bare-except
@@ -591,7 +591,7 @@ async def transit_trips(request: Request, response: Response, auth_token: str, y
     """Used to retrieve results"""
     try:
         if auth_token == api_auth_token:
-            json_file = main_file_path_transit_data + "data/transit-data.json"
+            json_file = main_file_path_transit_data + "transit-data.json"
             request_body_input = await request.json()
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
@@ -642,7 +642,7 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
                         loop_stations = ['Clark/Lake', 'State/Lake', 'Washington/Wabash', 'Adams/Wabash',
                                         'Harold Washington Library', 'LaSalle/Van Buren', 'Quincy', 'Washington/Wells']
                         transit_stations_file_path = main_file_path_transit_data + \
-                            "data/transit_stations.json"
+                            "transit_stations.json"
                         with open(transit_stations_file_path, 'r', encoding="utf-8") as fp2:
                             transit_stations = json.load(fp2)
                         if request_input['Route'] in loop_routes and request_input['Origin'] in loop_stations:

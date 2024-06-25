@@ -1,5 +1,6 @@
 """cta-reliability API by Brandon McFadden"""
 from datetime import datetime, timedelta
+from operator import index
 import os  # Used to retrieve secrets in .env file
 import time
 import json
@@ -16,6 +17,8 @@ from fastapi import Response
 import redis.asyncio as redis
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
+from google.cloud import bigquery
+from google.oauth2 import service_account
 from dateutil.relativedelta import relativedelta
 import apihtml
 
@@ -38,6 +41,9 @@ main_file_path_csv_month = main_file_path + "train_arrivals/csv_month/"
 api_auth_token = os.getenv('API_AUTH_TOKEN')
 api_auth_key = os.getenv('API_AUTH_KEY')
 environment = os.getenv('ENVIRONMENT')
+cta_train_arrivals_table = os.getenv('CTA_PROCESSED_ARRIVALS')
+gcloud_project_id = os.getenv('GCLOUD_PROJECT_ID')
+google_credentials_file = main_file_path + os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 
 
 def get_date(date_type):
@@ -422,6 +428,41 @@ async def return_arrivals_for_date(agency: str, date: str = None, availability: 
         except:  # pylint: disable=bare-except
             endpoint = "https://brandonmcfadden.com/api/transit/get_train_arrivals_by_day/"
             return generate_html_response_error(date, endpoint, get_date("current"))
+
+
+@app.get("/api/transit/get_train_arrivals/", dependencies=[Depends(RateLimiter(times=2, seconds=1))])
+async def return_arrivals_for_dates(agency: str, startdate: str, enddate: str = None, token: str = Depends(get_current_username)):
+    """Used to retrieve results"""
+    if agency == "wmata" or agency == 'metra':
+        return "Unavailable"
+    elif enddate is None:
+        enddate = get_date("api-today")
+    try:
+        if agency == 'cta':
+            credentials = service_account.Credentials.from_service_account_file(
+            google_credentials_file, scopes=[
+                "https://www.googleapis.com/auth/cloud-platform"],
+            )
+
+            client = bigquery.Client(credentials=credentials,
+                                project=credentials.project_id,)
+            query_job = client.query(f"""
+            SELECT * FROM `cta-utilities-410023.cta.processed_arrivals` 
+            WHERE Arrival_Time >= '{startdate}' AND Arrival_Time < '{enddate}'
+            ORDER BY Arrival_Time ASC""")
+            results = query_job.to_dataframe(create_bqstorage_client=False) # Wait for the job to complete.
+            return StreamingResponse(
+                results.to_csv(index=False),
+                media_type="text/csv",
+                headers={
+                    "Content-Disposition": f"attachment; filename=cta-arrivals-{startdate}-{enddate}.csv"}
+            )
+        else:
+            endpoint = "https://brandonmcfadden.com/api/transit/get_train_arrivals/"
+            return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+    except:  # pylint: disable=bare-except
+        endpoint = "https://brandonmcfadden.com/api/transit/get_train_arrivals/"
+        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
 
 
 @app.get("/api/transit/get_train_arrivals_by_month/", dependencies=[Depends(RateLimiter(times=2, seconds=1))])

@@ -290,7 +290,7 @@ async def return_special_station_json(token: str = Depends(get_current_username)
 
 
 @app.get("/api/v2/cta/current_headways", dependencies=[Depends(RateLimiter(times=2, seconds=1))])
-async def return_station_headways_json(token: str = Depends(get_current_username)):
+async def return_station_headways_json():
     """Used to retrieve results"""
     try:
         json_file = main_file_path + "train_arrivals/special/long_headways.json"

@@ -289,6 +289,18 @@ async def return_special_station_json(token: str = Depends(get_current_username)
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
 
 
+@app.get("/api/v2/cta/current_headways", dependencies=[Depends(RateLimiter(times=2, seconds=1))])
+async def return_station_headways_json(token: str = Depends(get_current_username)):
+    """Used to retrieve results"""
+    try:
+        json_file = main_file_path + "train_arrivals/special/long_headways.json"
+        results = open(json_file, 'r', encoding="utf-8")
+        return Response(content=results.read(), media_type="application/json")
+    except:  # pylint: disable=bare-except
+        endpoint = "https://brandonmcfadden.com/api/v2/cta/current_headways"
+        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
+
+
 @app.get("/api/sorting_information/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
 async def get_sort_information(token: str = Depends(get_current_username)):
     """Used to retrieve results"""

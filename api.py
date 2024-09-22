@@ -682,6 +682,7 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
                 json_file_loaded = json.load(fp)
             train_id = f"{request_input['Date']}-{request_input['Route']}-{request_input['Run Number']}"
             username = user.upper()
+            print(request_input)
             if username in json_file_loaded:
                 if agency not in json_file_loaded[username]:
                     json_file_loaded[username][agency] = {}
@@ -739,11 +740,20 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
                             request_input['Destination Station - Zone'] = transit_stations[agency][request_input['Route']
                                                                                                 ][request_input['Destination']]['Zone']
                             if (request_input['Origin Station - Zone'] in [2, 3, 4] and request_input['Destination Station - Zone'] in [2, 3, 4]) or (request_input['Origin Station - Zone'] in [1, 2] and request_input['Destination Station - Zone'] in [1, 2]):
-                                trip_cost = 3.75
+                                if "Reduced" in request_input['Ticket Type']:
+                                    trip_cost = 1.75
+                                else:
+                                    trip_cost = 3.75
                             elif (request_input['Origin Station - Zone'] in [1] and request_input['Destination Station - Zone'] in [3]) or (request_input['Origin Station - Zone'] in [3] and request_input['Destination Station - Zone'] in [1]):
-                                trip_cost = 5.50
+                                if "Reduced" in request_input['Ticket Type']:
+                                    trip_cost = 2.75
+                                else:
+                                    trip_cost = 5.50
                             elif (request_input['Origin Station - Zone'] in [1] and request_input['Destination Station - Zone'] in [4]) or (request_input['Origin Station - Zone'] in [4] and request_input['Destination Station - Zone'] in [1]):
-                                trip_cost = 6.75
+                                if "Reduced" in request_input['Ticket Type']:
+                                    trip_cost = 3.25
+                                else:
+                                    trip_cost = 6.75
                         elif agency == 'cta':
                             if request_input['Origin'] in ["O'Hare"]:
                                 trip_cost = 5

@@ -682,7 +682,6 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
                 json_file_loaded = json.load(fp)
             train_id = f"{request_input['Date']}-{request_input['Route']}-{request_input['Run Number']}"
             username = user.upper()
-            print(request_input)
             if username in json_file_loaded:
                 if agency not in json_file_loaded[username]:
                     json_file_loaded[username][agency] = {}

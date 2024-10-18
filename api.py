@@ -760,6 +760,8 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
                                 trip_cost = 2.5
                         elif agency == 'amtrak':
                             trip_cost = 0
+                        elif agency == 'southshoreline':
+                            trip_cost = 0
                         request_input['Track Miles'] = track_miles
                         request_input['Track Kilometers'] = track_kilometers
                         request_input['Trip Cost'] = trip_cost

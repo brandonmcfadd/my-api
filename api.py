@@ -761,6 +761,10 @@ async def transit_tracker_trips(request: Request, response: Response, user: str,
                         elif agency == 'amtrak':
                             trip_cost = 0
                         elif agency == 'southshoreline':
+                            request_input['Origin Station - Zone'] = transit_stations[agency][request_input['Route']
+                                                                                            ][request_input['Origin']]['Zone']
+                            request_input['Destination Station - Zone'] = transit_stations[agency][request_input['Route']
+                                                                                                ][request_input['Destination']]['Zone']
                             trip_cost = 0
                         request_input['Track Miles'] = track_miles
                         request_input['Track Kilometers'] = track_kilometers

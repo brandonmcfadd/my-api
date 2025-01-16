@@ -1040,3 +1040,27 @@ async def get_battery_data(entries: str, auth_token: str, response: Response):
     except Exception as exc:
         raise HTTPException(
             status_code=400, detail='Something Went Wrong') from exc
+
+@app.post("/api/tesla/undo", response_class=PlainTextResponse)
+async def post_battery_data(auth_token: str, response: Response):
+    """Used to retrieve results"""
+    try:
+        if auth_token == api_auth_token:
+            json_file = api_file_path + "data/tesla.json"
+            with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+            
+            last_entry = json_file_loaded[-1]
+            last_entry_text = f"Last Entry Date:{last_entry['Date']} {last_entry['Time']}\nLast Entry: {last_entry['MilesRemaining']} miles ({last_entry['Battery']}%)"
+            combined_return_text = f"Entry Removed:\n{last_entry_text}"
+            response.status_code = status.HTTP_202_ACCEPTED
+            with open(json_file, 'w', encoding="utf-8") as fp2:
+                json.dump(json_file_loaded, fp2, indent=4,
+                            separators=(',', ': '))
+            return combined_return_text
+        else:
+            raise HTTPException(
+                status_code=401, detail="Auth Token not Provided")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400, detail='Something Went Wrong') from exc

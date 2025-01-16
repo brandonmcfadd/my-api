@@ -11,7 +11,7 @@ import pandas as pd
 from dotenv import load_dotenv  # Used to Load Env Var
 from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse, JSONResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse, JSONResponse, PlainTextResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi import Response
 import redis.asyncio as redis
@@ -959,6 +959,81 @@ async def post_articles(request: Request, response: Response, auth_token: str, y
                           separators=(',', ': '))
             results = open(json_file, 'r', encoding="utf-8")
             return Response(content=results.read(), media_type="application/json")
+        else:
+            raise HTTPException(
+                status_code=401, detail="Auth Token not Provided")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400, detail='Something Went Wrong') from exc
+
+@app.post("/api/tesla/post", response_class=PlainTextResponse)
+async def post_battery_data(battery: str, miles: str, date: str, time: str, auth_token: str, response: Response):
+    """Used to retrieve results"""
+    try:
+        if auth_token == api_auth_token:
+            json_file = api_file_path + "data/tesla.json"
+            input_json = {"Date":date,"Time":time,"Battery": battery,"MilesRemaining":miles}
+            with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+            
+            last_entry = json_file_loaded[-1]
+            last_entry_text = f"Last Entry Date:{last_entry['Date']} {last_entry['Time']}\nLast Entry: {last_entry['MilesRemaining']} miles ({last_entry['Battery']}%)"
+            current_entry_text = f"New Entry Date:{input_json['Date']} {input_json['Time']}\nNew Entry: {miles} miles ({battery}%)"
+            miles_different = str(int(miles)-int(last_entry["MilesRemaining"]))
+            percent_different = str(int(battery)-int(last_entry["Battery"]))
+            if int(miles_different) > 0:
+                added_text_1 = "+"
+            else:
+                added_text_1 = ""
+            if int(percent_different) > 0:
+                added_text_2 = "+"
+            else:
+                added_text_2 = ""
+            difference = f"Miles: {added_text_1}{miles_different}\nBattery: {added_text_2}{percent_different}%"
+            combined_return_text = f"{last_entry_text}\n\n{current_entry_text}\n\n{difference}"
+            json_file_loaded.append(input_json)
+            response.status_code = status.HTTP_202_ACCEPTED
+            with open(json_file, 'w', encoding="utf-8") as fp2:
+                json.dump(json_file_loaded, fp2, indent=4,
+                            separators=(',', ': '))
+            return combined_return_text
+        else:
+            raise HTTPException(
+                status_code=401, detail="Auth Token not Provided")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400, detail='Something Went Wrong') from exc
+
+@app.get("/api/tesla/get", response_class=PlainTextResponse)
+async def get_battery_data(entries: str, auth_token: str, response: Response):
+    """Used to retrieve results"""
+    try:
+        if auth_token == api_auth_token:
+            json_file = api_file_path + "data/tesla.json"
+            with open(json_file, 'r', encoding="utf-8") as fp:
+                json_file_loaded = json.load(fp)
+            if entries == "all":
+                entries_to_get = len(json_file_loaded)*-1
+            elif int(entries) > len(json_file_loaded):
+                entries_to_get = len(json_file_loaded)*-1
+            else:
+                entries_to_get = int(entries)*-1
+            output = ""
+            print(entries_to_get)
+            while entries_to_get < 0:
+                try:
+                    last_entry = json_file_loaded[entries_to_get]
+                    last_entry_text = f"Date:{last_entry['Date']} {last_entry['Time']} - {last_entry['MilesRemaining']} miles ({last_entry['Battery']}%)"
+                    output = f"{last_entry_text}\n{output}"
+                    entries_to_get += 1
+                except:
+                    entries_to_get += 1
+                    continue
+            response.status_code = status.HTTP_200_OK
+            with open(json_file, 'w', encoding="utf-8") as fp2:
+                json.dump(json_file_loaded, fp2, indent=4,
+                            separators=(',', ': '))
+            return output
         else:
             raise HTTPException(
                 status_code=401, detail="Auth Token not Provided")

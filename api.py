@@ -1054,6 +1054,7 @@ async def post_battery_data(auth_token: str, response: Response):
             last_entry_text = f"Last Entry Date:{last_entry['Date']} {last_entry['Time']}\nLast Entry: {last_entry['MilesRemaining']} miles ({last_entry['Battery']}%)"
             combined_return_text = f"Entry Removed:\n{last_entry_text}"
             response.status_code = status.HTTP_202_ACCEPTED
+            del json_file_loaded[-1]
             with open(json_file, 'w', encoding="utf-8") as fp2:
                 json.dump(json_file_loaded, fp2, indent=4,
                             separators=(',', ': '))

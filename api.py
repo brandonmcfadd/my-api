@@ -9,11 +9,10 @@ from logging.handlers import RotatingFileHandler
 import secrets
 import pandas as pd
 from dotenv import load_dotenv  # Used to Load Env Var
-from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi import FastAPI, HTTPException, Depends, status, Request, Response
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse, JSONResponse, PlainTextResponse
 from fastapi.encoders import jsonable_encoder
-from fastapi import Response
 import redis.asyncio as redis
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
@@ -71,6 +70,8 @@ def get_date(date_type):
         date = datetime.strftime(datetime.now(), "%d %b %Y %H:%M:%S")
     elif date_type == "code-time":
         date = datetime.strftime(datetime.now(), "%Y-%m-%dT%H:%M:%S%z")
+    else:
+        date = None
     return date
 
 
@@ -277,30 +278,6 @@ async def return_arrivals_for_date_month_cta_v2(date: str, token: str = Depends(
             return generate_html_response_error(date, endpoint, get_date("current"))
 
 
-@app.get("/api/v2/cta/headways", dependencies=[Depends(RateLimiter(times=2, seconds=1))])
-async def return_special_station_json(token: str = Depends(get_current_username)):
-    """Used to retrieve results"""
-    try:
-        json_file = main_file_path + "train_arrivals/json/special-station.json"
-        results = open(json_file, 'r', encoding="utf-8")
-        return Response(content=results.read(), media_type="application/json")
-    except:  # pylint: disable=bare-except
-        endpoint = "https://brandonmcfadden.com/api/v2/cta/headways"
-        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
-
-
-@app.get("/api/v2/cta/current_headways", dependencies=[Depends(RateLimiter(times=2, seconds=1))])
-async def return_station_headways_json():
-    """Used to retrieve results"""
-    try:
-        json_file = main_file_path + "train_arrivals/special/long_headways.json"
-        results = open(json_file, 'r', encoding="utf-8")
-        return Response(content=results.read(), media_type="application/json")
-    except:  # pylint: disable=bare-except
-        endpoint = "https://brandonmcfadden.com/api/v2/cta/current_headways"
-        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
-
-
 @app.get("/api/sorting_information/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
 async def get_sort_information(token: str = Depends(get_current_username)):
     """Used to retrieve results"""
@@ -310,18 +287,6 @@ async def get_sort_information(token: str = Depends(get_current_username)):
         return Response(content=results.read(), media_type="application/json")
     except:  # pylint: disable=bare-except
         endpoint = "https://brandonmcfadden.com/api/sorting_information/get"
-        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
-
-
-@app.get("/api/v2/metra/holiday_trains/", dependencies=[Depends(RateLimiter(times=2, seconds=1))])
-async def return_holiday_trains_metra(token: str = Depends(get_current_username)):
-    """Used to retrieve results"""
-    try:
-        json_file = main_file_path + "train_arrivals/special/tweeted_metra_trains.json"
-        results = open(json_file, 'r', encoding="utf-8")
-        return Response(content=results.read(), media_type="application/json")
-    except:  # pylint: disable=bare-except
-        endpoint = "https://brandonmcfadden.com/api/v2/metra/holiday_trains/"
         return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
 
 
@@ -836,7 +801,7 @@ async def get_transit_tracker_trips(user: str, auth_token: str, output_type: str
                         trip_cost = f"{json_file_loaded[user_input][agency_trip][item]['Trip Cost']:.2f}"
                         if agency_trip == 'metra':
                             new_line = f"{user_input},{json_file_loaded[user_input][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[user_input][agency_trip][item]['Route']},{json_file_loaded[user_input][agency_trip][item]['Run Number']},{json_file_loaded[user_input][agency_trip][item]['Origin']},,{json_file_loaded[user_input][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Destination']},,{json_file_loaded[user_input][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Track Miles']},{json_file_loaded[user_input][agency_trip][item]['Track Kilometers']},{trip_cost},{json_file_loaded[user_input][agency_trip][item]['Ticket Type']}"
-                        elif agency_trip in ['cta', 'amtrak']:
+                        elif agency_trip in ['cta', 'amtrak', 'southshoreline']:
                             new_line = f"{user_input},{json_file_loaded[user_input][agency_trip][item]['Date']},{agency_trip},{json_file_loaded[user_input][agency_trip][item]['Route']},{json_file_loaded[user_input][agency_trip][item]['Run Number']},{json_file_loaded[user_input][agency_trip][item]['Origin']},,{json_file_loaded[user_input][agency_trip][item]['Origin Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Origin Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Destination']},,{json_file_loaded[user_input][agency_trip][item]['Destination Station - Mileage']},{json_file_loaded[user_input][agency_trip][item]['Destination Station - Kilometers']},{json_file_loaded[user_input][agency_trip][item]['Track Miles']},{json_file_loaded[user_input][agency_trip][item]['Track Kilometers']},{trip_cost},"
                         output_text = f"{output_text}\n{new_line}"
             else:
@@ -875,7 +840,7 @@ async def transit_data_password_check(request: Request, response: Response):
 
 
 @app.post("/api/transit/new-user", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def transit_data_new_user(auth_token: str, request: Request, response: Response):
+async def transit_data_new_user(request: Request, response: Response):
     """Used to retrieve results"""
     try:
         file = open(file=api_file_path + '.transit_data_tokens',
@@ -912,18 +877,6 @@ async def transit_data_new_user(auth_token: str, request: Request, response: Res
     except Exception as exc:
         raise HTTPException(
             status_code=400, detail='Something Went Wrong') from exc
-
-
-@app.get("/api/cta/alerts/get", dependencies=[Depends(RateLimiter(times=2, seconds=1))], status_code=200)
-async def get_cta_alerts(token: str = Depends(get_current_username)):
-    """Used to retrieve results"""
-    try:
-        json_file = main_file_path + "train_arrivals/special/cta_alerts.json"
-        results = open(json_file, 'r', encoding="utf-8")
-        return Response(content=results.read(), media_type="application/json")
-    except:  # pylint: disable=bare-except
-        endpoint = "https://brandonmcfadden.com/api/cta/alerts/get"
-        return generate_html_response_error(get_date("current"), endpoint, get_date("current"))
 
 
 @app.get("/api/articles/get", status_code=200)
@@ -975,7 +928,7 @@ async def post_battery_data(battery: str, miles: str, date: str, time: str, auth
             input_json = {"Date":date,"Time":time,"Battery": battery,"MilesRemaining":miles}
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
-            
+
             last_entry = json_file_loaded[-1]
             last_entry_text = f"Last Entry Date:{last_entry['Date']} {last_entry['Time']}\nLast Entry: {last_entry['MilesRemaining']} miles ({last_entry['Battery']}%)"
             current_entry_text = f"New Entry Date:{input_json['Date']} {input_json['Time']}\nNew Entry: {miles} miles ({battery}%)"
@@ -1042,14 +995,14 @@ async def get_battery_data(entries: str, auth_token: str, response: Response):
             status_code=400, detail='Something Went Wrong') from exc
 
 @app.post("/api/tesla/undo", response_class=PlainTextResponse)
-async def post_battery_data(auth_token: str, response: Response):
+async def undo_battery_data(auth_token: str, response: Response):
     """Used to retrieve results"""
     try:
         if auth_token == api_auth_token:
             json_file = api_file_path + "data/tesla.json"
             with open(json_file, 'r', encoding="utf-8") as fp:
                 json_file_loaded = json.load(fp)
-            
+
             last_entry = json_file_loaded[-1]
             last_entry_text = f"Last Entry Date:{last_entry['Date']} {last_entry['Time']}\nLast Entry: {last_entry['MilesRemaining']} miles ({last_entry['Battery']}%)"
             combined_return_text = f"Entry Removed:\n{last_entry_text}"
